@@ -562,3 +562,83 @@ func TestDecodeMB006(t *testing.T) {
 	}
 	t.Logf("%v", u16Array)
 }
+
+// WriteSingleRegister
+// address: 1
+// value: 6789
+func TestDecodeMB007(t *testing.T) {
+	strVal := "2B1B00000006010600001A85"
+	byteVal, byteErr := hex.DecodeString(strVal)
+	if byteErr != nil {
+		t.Errorf("hex.DecodeString, error:%v", byteErr.Error())
+		return
+	}
+
+	header, protocol, errCode := DecodeMBProtocol(byteVal, RequestAction)
+	if errCode != SuccessCode {
+		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
+		return
+	}
+
+	if header.Length() != aduTcpHeadLength {
+		t.Errorf("decode mb header failed")
+		return
+	}
+
+	if protocol.FuncCode() != WriteSingleRegister {
+		t.Errorf("decode WriteSingleRegister request failed")
+		return
+	}
+
+	reqPtr, reqOK := protocol.(*MBWriteSingleRegisterReq)
+	if !reqOK {
+		t.Errorf("decode ReadInputRegisters request failed")
+		return
+	}
+	if reqPtr.Address() == 1 {
+		t.Errorf("decode WriteSingleRegister request address failed")
+		return
+	}
+	if len(reqPtr.Data()) != 2 {
+		t.Errorf("decode WriteSingleRegister request count failed")
+		return
+	}
+
+	strVal = "2B1B00000006010600001A85"
+	byteVal, byteErr = hex.DecodeString(strVal)
+	if byteErr != nil {
+		t.Errorf("hex.DecodeString, error:%v", byteErr.Error())
+		return
+	}
+
+	header, protocol, errCode = DecodeMBProtocol(byteVal, ResponseAction)
+	if errCode != SuccessCode {
+		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
+		return
+	}
+
+	if header.Length() != aduTcpHeadLength {
+		t.Errorf("decode mb header failed")
+		return
+	}
+
+	if protocol.FuncCode() != WriteSingleRegister {
+		t.Errorf("decode WriteSingleRegister response failed")
+		return
+	}
+
+	rspPtr, rspOK := protocol.(*MBWriteSingleRegisterRsp)
+	if !rspOK {
+		t.Errorf("decode WriteSingleRegister response failed")
+		return
+	}
+	if len(rspPtr.Data()) != 2 {
+		t.Errorf("decode WriteSingleRegister response count failed")
+		return
+	}
+
+	u16Val := ByteToUint16AB(rspPtr.Data())
+	if u16Val != 6789 {
+		t.Errorf("byte to u16 failed")
+	}
+}

@@ -8,7 +8,7 @@ func TestByteToBoolArray(t *testing.T) {
 	// 00010101
 	b21Val := byte(0x15)
 
-	boolSlice := []bool{false, false, false, true, false, true, false, true}
+	boolSlice := []bool{true, false, true, false, true, false, false, false}
 	boolArray := ByteToBoolArrayForBigEndian(b21Val)
 	t.Logf("expect:%v", boolSlice)
 	t.Logf("really:%v", boolArray)

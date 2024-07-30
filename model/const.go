@@ -81,14 +81,6 @@ func ByteArrayToBoolArrayForLittleEndian(byteVal []byte) []bool {
 	return ret
 }
 
-func ByteToBoolArray(byteVal byte, bigEndian bool) []bool {
-	if bigEndian {
-		return ByteToBoolArrayForBigEndian(byteVal)
-	}
-
-	return ByteToBoolArrayForLittleEndian(byteVal)
-}
-
 func ByteToBoolArrayForLittleEndian(byteVal byte) []bool {
 	boolArray := make([]bool, 8)
 
@@ -143,14 +135,6 @@ func BoolArrayToByteArrayForLittleEndian(boolVal []bool) []byte {
 	}
 
 	return ret
-}
-
-func BoolArrayToByte(boolVal []bool, bigEndian bool) byte {
-	if bigEndian {
-		return BoolArrayToByteForBigEndian(boolVal)
-	}
-
-	return BoolArrayToByteForLittleEndian(boolVal)
 }
 
 func BoolArrayToByteForLittleEndian(boolArray []bool) byte {
