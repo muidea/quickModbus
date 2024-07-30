@@ -1,6 +1,7 @@
 package model
 
 import (
+	"bytes"
 	"encoding/hex"
 	"testing"
 )
@@ -840,6 +841,91 @@ func TestDecodeMB009(t *testing.T) {
 	}
 	if rspPtr.Count() != 10 {
 		t.Errorf("decode WriteMultipleRegisters response count failed")
+		return
+	}
+}
+
+// WriteSingleCoil
+// address: 2
+// value: true
+func TestDecodeMB010(t *testing.T) {
+	strVal := "3CA40000000601050002FF00"
+	byteVal, byteErr := hex.DecodeString(strVal)
+	if byteErr != nil {
+		t.Errorf("hex.DecodeString, error:%v", byteErr.Error())
+		return
+	}
+
+	header, protocol, errCode := DecodeMBProtocol(byteVal, RequestAction)
+	if errCode != SuccessCode {
+		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
+		return
+	}
+
+	if header.Length() != aduTcpHeadLength {
+		t.Errorf("decode mb header failed")
+		return
+	}
+
+	if protocol.FuncCode() != WriteSingleCoil {
+		t.Errorf("decode WriteSingleCoil request failed")
+		return
+	}
+
+	reqPtr, reqOK := protocol.(*MBWriteSingleCoilReq)
+	if !reqOK {
+		t.Errorf("decode WriteSingleCoil request failed")
+		return
+	}
+	if reqPtr.Address() != 2 {
+		t.Errorf("decode WriteSingleCoil request address failed")
+		return
+	}
+	if len(reqPtr.Data()) != 2 {
+		t.Errorf("decode WriteSingleCoil request data count failed")
+		return
+	}
+
+	if bytes.Compare(reqPtr.Data(), coilON) != 0 {
+		t.Errorf("decode WriteSingleCoil request data failed")
+		return
+	}
+
+	strVal = "3CA40000000601050002FF00"
+	byteVal, byteErr = hex.DecodeString(strVal)
+	if byteErr != nil {
+		t.Errorf("hex.DecodeString, error:%v", byteErr.Error())
+		return
+	}
+
+	header, protocol, errCode = DecodeMBProtocol(byteVal, ResponseAction)
+	if errCode != SuccessCode {
+		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
+		return
+	}
+
+	if header.Length() != aduTcpHeadLength {
+		t.Errorf("decode mb header failed")
+		return
+	}
+
+	if protocol.FuncCode() != WriteSingleCoil {
+		t.Errorf("decode WriteSingleCoil response failed")
+		return
+	}
+
+	rspPtr, rspOK := protocol.(*MBWriteSingleCoilRsp)
+	if !rspOK {
+		t.Errorf("decode WriteSingleCoil response failed")
+		return
+	}
+	if len(rspPtr.Data()) != 2 {
+		t.Errorf("decode WriteSingleRegister response data len failed")
+		return
+	}
+
+	if bytes.Compare(rspPtr.Data(), coilON) != 0 {
+		t.Errorf("decode WriteSingleCoil response data failed")
 		return
 	}
 }
