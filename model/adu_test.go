@@ -6,7 +6,7 @@ import (
 )
 
 // ReadCoils
-// address: 1
+// address: 0
 // count: 10
 func TestDecodeMB001(t *testing.T) {
 	strVal := "00060000000601010000000A"
@@ -37,7 +37,7 @@ func TestDecodeMB001(t *testing.T) {
 		t.Errorf("decode ReadCoils request failed")
 		return
 	}
-	if reqPtr.Address() == 1 {
+	if reqPtr.Address() != 0 {
 		t.Errorf("decode ReadCoils request address failed")
 		return
 	}
@@ -101,7 +101,7 @@ func TestDecodeMB001(t *testing.T) {
 }
 
 // ReadCoils
-// address: 6
+// address: 5
 // count: 13
 func TestDecodeMB002(t *testing.T) {
 	strVal := "07B10000000601010005000D"
@@ -132,7 +132,7 @@ func TestDecodeMB002(t *testing.T) {
 		t.Errorf("decode ReadCoils request failed")
 		return
 	}
-	if reqPtr.Address() == 6 {
+	if reqPtr.Address() != 5 {
 		t.Errorf("decode ReadCoils request address failed")
 		return
 	}
@@ -196,7 +196,7 @@ func TestDecodeMB002(t *testing.T) {
 }
 
 // ReadDiscreteInputs
-// address: 1
+// address: 0
 // count: 13
 func TestDecodeMB003(t *testing.T) {
 	strVal := "09950000000601020000000D"
@@ -227,7 +227,7 @@ func TestDecodeMB003(t *testing.T) {
 		t.Errorf("decode ReadDiscreteInputs request failed")
 		return
 	}
-	if reqPtr.Address() == 1 {
+	if reqPtr.Address() != 0 {
 		t.Errorf("decode ReadDiscreteInputs request address failed")
 		return
 	}
@@ -291,7 +291,7 @@ func TestDecodeMB003(t *testing.T) {
 }
 
 // ReadDiscreteInputs
-// address: 1
+// address: 0
 // count: 25
 func TestDecodeMB004(t *testing.T) {
 	strVal := "0C0F00000006010200000019"
@@ -322,7 +322,7 @@ func TestDecodeMB004(t *testing.T) {
 		t.Errorf("decode ReadDiscreteInputs request failed")
 		return
 	}
-	if reqPtr.Address() == 1 {
+	if reqPtr.Address() != 0 {
 		t.Errorf("decode ReadDiscreteInputs request address failed")
 		return
 	}
@@ -386,7 +386,7 @@ func TestDecodeMB004(t *testing.T) {
 }
 
 // ReadDiscreteInputs
-// address: 1
+// address: 0
 // count: 13
 func TestDecodeMB005(t *testing.T) {
 	strVal := "10400000000601030000000D"
@@ -417,7 +417,7 @@ func TestDecodeMB005(t *testing.T) {
 		t.Errorf("decode ReadHoldingRegisters request failed")
 		return
 	}
-	if reqPtr.Address() == 1 {
+	if reqPtr.Address() != 0 {
 		t.Errorf("decode ReadHoldingRegisters request address failed")
 		return
 	}
@@ -475,7 +475,7 @@ func TestDecodeMB005(t *testing.T) {
 }
 
 // ReadInputRegisters
-// address: 1
+// address: 0
 // count: 13
 func TestDecodeMB006(t *testing.T) {
 	strVal := "1D7A0000000601040000000D"
@@ -506,7 +506,7 @@ func TestDecodeMB006(t *testing.T) {
 		t.Errorf("decode ReadInputRegisters request failed")
 		return
 	}
-	if reqPtr.Address() == 1 {
+	if reqPtr.Address() != 0 {
 		t.Errorf("decode ReadInputRegisters request address failed")
 		return
 	}
@@ -564,7 +564,7 @@ func TestDecodeMB006(t *testing.T) {
 }
 
 // WriteSingleRegister
-// address: 1
+// address: 0
 // value: 6789
 func TestDecodeMB007(t *testing.T) {
 	strVal := "2B1B00000006010600001A85"
@@ -592,15 +592,20 @@ func TestDecodeMB007(t *testing.T) {
 
 	reqPtr, reqOK := protocol.(*MBWriteSingleRegisterReq)
 	if !reqOK {
-		t.Errorf("decode ReadInputRegisters request failed")
+		t.Errorf("decode WriteSingleRegister request failed")
 		return
 	}
-	if reqPtr.Address() == 1 {
+	if reqPtr.Address() != 0 {
 		t.Errorf("decode WriteSingleRegister request address failed")
 		return
 	}
 	if len(reqPtr.Data()) != 2 {
-		t.Errorf("decode WriteSingleRegister request count failed")
+		t.Errorf("decode WriteSingleRegister request data count failed")
+		return
+	}
+	u16 := ByteToUint16AB(reqPtr.Data())
+	if u16 != 6789 {
+		t.Errorf("decode WriteSingleRegister request data failed")
 		return
 	}
 
@@ -640,5 +645,102 @@ func TestDecodeMB007(t *testing.T) {
 	u16Val := ByteToUint16AB(rspPtr.Data())
 	if u16Val != 6789 {
 		t.Errorf("byte to u16 failed")
+	}
+}
+
+// WriteMultipleRegisters
+// address: 0
+// value: 6789
+func TestDecodeMB008(t *testing.T) {
+	strVal := "310300000009011000000001021A85"
+	byteVal, byteErr := hex.DecodeString(strVal)
+	if byteErr != nil {
+		t.Errorf("hex.DecodeString, error:%v", byteErr.Error())
+		return
+	}
+
+	header, protocol, errCode := DecodeMBProtocol(byteVal, RequestAction)
+	if errCode != SuccessCode {
+		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
+		return
+	}
+
+	if header.Length() != aduTcpHeadLength {
+		t.Errorf("decode mb header failed")
+		return
+	}
+
+	if protocol.FuncCode() != WriteMultipleRegisters {
+		t.Errorf("decode WriteMultipleRegisters request failed")
+		return
+	}
+
+	reqPtr, reqOK := protocol.(*MBWriteMultipleRegistersReq)
+	if !reqOK {
+		t.Errorf("decode WriteMultipleRegisters request failed")
+		return
+	}
+	if reqPtr.Address() != 0 {
+		t.Errorf("decode WriteMultipleRegisters request address failed")
+		return
+	}
+	if reqPtr.Count() != 1 {
+		t.Errorf("decode WriteMultipleRegisters request count failed")
+		return
+	}
+	if reqPtr.DataSize() != 2 {
+		t.Errorf("decode WriteMultipleRegisters request dataSize failed")
+		return
+	}
+	if len(reqPtr.Data()) != 2 {
+		t.Errorf("decode WriteMultipleRegisters request data len failed")
+		return
+	}
+
+	u16Array, u16Err := ByteArrayToUint16ABArray(reqPtr.Data())
+	if u16Err != nil || len(u16Array) != 1 {
+		t.Errorf("decode WriteMultipleRegisters request data value failed")
+		return
+	}
+	if u16Array[0] != 6789 {
+		t.Errorf("decode WriteMultipleRegisters request data value failed")
+		return
+	}
+
+	strVal = "310300000006011000000001"
+	byteVal, byteErr = hex.DecodeString(strVal)
+	if byteErr != nil {
+		t.Errorf("hex.DecodeString, error:%v", byteErr.Error())
+		return
+	}
+
+	header, protocol, errCode = DecodeMBProtocol(byteVal, ResponseAction)
+	if errCode != SuccessCode {
+		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
+		return
+	}
+
+	if header.Length() != aduTcpHeadLength {
+		t.Errorf("decode mb header failed")
+		return
+	}
+
+	if protocol.FuncCode() != WriteMultipleRegisters {
+		t.Errorf("decode WriteMultipleRegisters response failed")
+		return
+	}
+
+	rspPtr, rspOK := protocol.(*MBWriteMultipleRegistersRsp)
+	if !rspOK {
+		t.Errorf("decode WriteMultipleRegisters response failed")
+		return
+	}
+	if rspPtr.Address() != 0 {
+		t.Errorf("decode WriteMultipleRegisters response address failed")
+		return
+	}
+	if rspPtr.Count() != 1 {
+		t.Errorf("decode WriteMultipleRegisters response count failed")
+		return
 	}
 }
