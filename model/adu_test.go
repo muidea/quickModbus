@@ -929,3 +929,107 @@ func TestDecodeMB010(t *testing.T) {
 		return
 	}
 }
+
+// WriteMultipleCoils
+// address: 0
+// value: (0,2,4,5,6)true
+func TestDecodeMB011(t *testing.T) {
+	strVal := "076600000009010F0000000A027500"
+	byteVal, byteErr := hex.DecodeString(strVal)
+	if byteErr != nil {
+		t.Errorf("hex.DecodeString, error:%v", byteErr.Error())
+		return
+	}
+
+	header, protocol, errCode := DecodeMBProtocol(byteVal, RequestAction)
+	if errCode != SuccessCode {
+		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
+		return
+	}
+
+	if header.Length() != aduTcpHeadLength {
+		t.Errorf("decode mb header failed")
+		return
+	}
+
+	if protocol.FuncCode() != WriteMultipleCoils {
+		t.Errorf("decode WriteMultipleCoils request failed")
+		return
+	}
+
+	reqPtr, reqOK := protocol.(*MBWriteMultipleCoilsReq)
+	if !reqOK {
+		t.Errorf("decode WriteMultipleCoils request failed")
+		return
+	}
+	if reqPtr.Address() != 0 {
+		t.Errorf("decode WriteMultipleCoils request address failed")
+		return
+	}
+	if reqPtr.Count() != 10 {
+		t.Errorf("decode WriteMultipleCoils request count failed")
+		return
+	}
+	if reqPtr.DataSize() != 2 {
+		t.Errorf("decode WriteMultipleCoils request dataSize failed")
+		return
+	}
+	if len(reqPtr.Data()) != 2 {
+		t.Errorf("decode WriteMultipleCoils request data count failed")
+		return
+	}
+
+	valSet := []bool{true, false, true, false, true, true, true, false, false, false}
+	boolArray := ByteArrayToBoolArray(reqPtr.Data())
+	idx := uint16(0)
+	for ; idx < reqPtr.Count(); idx++ {
+		if valSet[idx] != boolArray[idx] {
+			t.Errorf("decode WriteMultipleCoils request data count failed")
+		}
+	}
+	for idx < uint16(len(boolArray)) {
+		if boolArray[idx] {
+			t.Errorf("decode WriteMultipleCoils request data count failed")
+		}
+
+		idx++
+	}
+
+	strVal = "076600000006010F0000000A"
+	byteVal, byteErr = hex.DecodeString(strVal)
+	if byteErr != nil {
+		t.Errorf("hex.DecodeString, error:%v", byteErr.Error())
+		return
+	}
+
+	header, protocol, errCode = DecodeMBProtocol(byteVal, ResponseAction)
+	if errCode != SuccessCode {
+		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
+		return
+	}
+
+	if header.Length() != aduTcpHeadLength {
+		t.Errorf("decode mb header failed")
+		return
+	}
+
+	if protocol.FuncCode() != WriteMultipleCoils {
+		t.Errorf("decode WriteMultipleCoils response failed")
+		return
+	}
+
+	rspPtr, rspOK := protocol.(*MBWriteMultipleCoilsRsp)
+	if !rspOK {
+		t.Errorf("decode WriteMultipleCoils response failed")
+		return
+	}
+	if rspPtr.Address() != 0 {
+		t.Errorf("decode WriteMultipleCoils response address failed")
+		return
+	}
+
+	if rspPtr.Count() != 10 {
+		t.Errorf("decode WriteMultipleCoils response data count failed")
+		return
+	}
+}

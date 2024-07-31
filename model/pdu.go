@@ -875,7 +875,7 @@ func (s *MBWriteMultipleCoilsReq) Decode(byteData []byte) (err byte) {
 	s.address = binary.BigEndian.Uint16(byteData[1:3])
 	s.count = binary.BigEndian.Uint16(byteData[3:5])
 	s.dataSize = byteData[5]
-	s.dataVal = byteData[5 : 5+int(s.dataSize)]
+	s.dataVal = byteData[6 : 6+int(s.dataSize)]
 	return
 }
 
