@@ -81,11 +81,6 @@ func (s *mbTcpHeader) Decode(byteData []byte) (err byte) {
 			err = IllegalData
 		}
 	}()
-	defer func() {
-		if errInfo := recover(); errInfo != nil {
-			err = IllegalData
-		}
-	}()
 	if len(byteData) < aduTcpHeadLength {
 		err = IllegalData
 		return

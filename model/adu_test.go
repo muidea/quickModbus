@@ -386,7 +386,7 @@ func TestDecodeMB004(t *testing.T) {
 	t.Logf("%v", boolArray)
 }
 
-// ReadDiscreteInputs
+// ReadHoldingRegisters
 // address: 0
 // count: 13
 func TestDecodeMB005(t *testing.T) {

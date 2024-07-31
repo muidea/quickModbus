@@ -10,6 +10,8 @@ const (
 	aduSerialHeadLength = 1
 )
 
+const ModbusProtocol = 0
+
 /*
 | Primary tables    | Object type | Type of    | Comments                                                      |
 | :---------------- | :---------- | :--------- | :------------------------------------------------------------ |
@@ -54,14 +56,6 @@ const (
 	IllegalCount    = 0x03
 	IllegalData     = 0x04
 )
-
-func GetCoilON() []byte {
-	return coilON
-}
-
-func GetCoilOFF() []byte {
-	return coilOFF
-}
 
 func ByteArrayToBoolArray(byteVal []byte) []bool {
 	ret := []bool{}
