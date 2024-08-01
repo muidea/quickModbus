@@ -10,6 +10,16 @@ type MBProtocol interface {
 	Decode(byteData []byte) (err byte)
 }
 
+func NewReadExceptionStatusReq() *MBReadExceptionStatusReq {
+	panic("unsupported!")
+
+	return &MBReadExceptionStatusReq{}
+}
+
+func EmptyReadExceptionStatusReq() *MBReadExceptionStatusReq {
+	return &MBReadExceptionStatusReq{}
+}
+
 type MBReadExceptionStatusReq struct {
 }
 
@@ -43,6 +53,16 @@ func (s *MBReadExceptionStatusReq) Decode(byteData []byte) (err byte) {
 		return
 	}
 	return
+}
+
+func NewReadExceptionStatusRsp() *MBReadExceptionStatusRsp {
+	panic("unsupported!")
+
+	return &MBReadExceptionStatusRsp{}
+}
+
+func EmptyReadExceptionStatusRsp() *MBReadExceptionStatusRsp {
+	return &MBReadExceptionStatusRsp{}
 }
 
 type MBReadExceptionStatusRsp struct {
@@ -92,6 +112,16 @@ func (s *MBReadExceptionStatusRsp) Status() byte {
 	return s.statusVal
 }
 
+func NewDiagnosticsReq() *MBDiagnosticsReq {
+	panic("unsupported!")
+
+	return &MBDiagnosticsReq{}
+}
+
+func EmptyDiagnosticsReq() *MBDiagnosticsReq {
+	return &MBDiagnosticsReq{}
+}
+
 type MBDiagnosticsReq struct {
 	dataFunction uint16
 	dataVal      []byte
@@ -116,11 +146,46 @@ func (s *MBDiagnosticsReq) Encode(buffVal []byte) (ret []byte, err byte) {
 	return
 }
 
+func (s *MBDiagnosticsReq) Decode(byteData []byte) (err byte) {
+	panic("unsupported!")
+	return
+}
+
+func NewDiagnosticsRsp() *MBDiagnosticsRsp {
+	panic("unsupported!")
+
+	return &MBDiagnosticsRsp{}
+}
+
+func EmptyDiagnosticsRsp() *MBDiagnosticsRsp {
+	return &MBDiagnosticsRsp{}
+}
+
 type MBDiagnosticsRsp struct {
 }
 
 func (s *MBDiagnosticsRsp) FuncCode() byte {
 	return Diagnostics
+}
+
+func (s *MBDiagnosticsRsp) Encode(buffVal []byte) (ret []byte, err byte) {
+	panic("unsupported!")
+	return
+}
+
+func (s *MBDiagnosticsRsp) Decode(byteData []byte) (err byte) {
+	panic("unsupported!")
+	return
+}
+
+func NewGetCommEventCounterReq() *MBGetCommEventCounterReq {
+	panic("unsupported!")
+
+	return &MBGetCommEventCounterReq{}
+}
+
+func EmptyGetCommEventCounterReq() *MBGetCommEventCounterReq {
+	return &MBGetCommEventCounterReq{}
 }
 
 type MBGetCommEventCounterReq struct {
@@ -130,11 +195,51 @@ func (s *MBGetCommEventCounterReq) FuncCode() byte {
 	return GetCommEventCounter
 }
 
+func (s *MBGetCommEventCounterReq) Encode(buffVal []byte) (ret []byte, err byte) {
+	panic("unsupported!")
+	return
+}
+
+func (s *MBGetCommEventCounterReq) Decode(byteData []byte) (err byte) {
+	panic("unsupported!")
+	return
+}
+
+func NewGetCommEventCounterRsp() *MBGetCommEventCounterRsp {
+	panic("unsupported!")
+
+	return &MBGetCommEventCounterRsp{}
+}
+
+func EmptyGetCommEventCounterRsp() *MBGetCommEventCounterRsp {
+	return &MBGetCommEventCounterRsp{}
+}
+
 type MBGetCommEventCounterRsp struct {
 }
 
 func (s *MBGetCommEventCounterRsp) FuncCode() byte {
 	return GetCommEventCounter
+}
+
+func (s *MBGetCommEventCounterRsp) Encode(buffVal []byte) (ret []byte, err byte) {
+	panic("unsupported!")
+	return
+}
+
+func (s *MBGetCommEventCounterRsp) Decode(byteData []byte) (err byte) {
+	panic("unsupported!")
+	return
+}
+
+func NewGetCommEventLogReq() *MBGetCommEventLogReq {
+	panic("unsupported!")
+
+	return &MBGetCommEventLogReq{}
+}
+
+func EmptyGetCommEventLogReq() *MBGetCommEventLogReq {
+	return &MBGetCommEventLogReq{}
 }
 
 type MBGetCommEventLogReq struct {
@@ -144,11 +249,51 @@ func (s *MBGetCommEventLogReq) FuncCode() byte {
 	return GetCommEventLog
 }
 
+func (s *MBGetCommEventLogReq) Encode(buffVal []byte) (ret []byte, err byte) {
+	panic("unsupported!")
+	return
+}
+
+func (s *MBGetCommEventLogReq) Decode(byteData []byte) (err byte) {
+	panic("unsupported!")
+	return
+}
+
+func NewGetCommEventLogRsp() *MBGetCommEventLogRsp {
+	panic("unsupported!")
+
+	return &MBGetCommEventLogRsp{}
+}
+
+func EmptyGetCommEventLogRsp() *MBGetCommEventLogRsp {
+	return &MBGetCommEventLogRsp{}
+}
+
 type MBGetCommEventLogRsp struct {
 }
 
 func (s *MBGetCommEventLogRsp) FuncCode() byte {
 	return GetCommEventLog
+}
+
+func (s *MBGetCommEventLogRsp) Encode(buffVal []byte) (ret []byte, err byte) {
+	panic("unsupported!")
+	return
+}
+
+func (s *MBGetCommEventLogRsp) Decode(byteData []byte) (err byte) {
+	panic("unsupported!")
+	return
+}
+
+func NewReportServerIDReq() *MBReportServerIDReq {
+	panic("unsupported!")
+
+	return &MBReportServerIDReq{}
+}
+
+func EmptyReportServerIDReq() *MBReportServerIDReq {
+	return &MBReportServerIDReq{}
 }
 
 type MBReportServerIDReq struct {
@@ -158,11 +303,41 @@ func (s *MBReportServerIDReq) FuncCode() byte {
 	return ReportServerID
 }
 
+func (s *MBReportServerIDReq) Encode(buffVal []byte) (ret []byte, err byte) {
+	panic("unsupported!")
+	return
+}
+
+func (s *MBReportServerIDReq) Decode(byteData []byte) (err byte) {
+	panic("unsupported!")
+	return
+}
+
+func NewReportServerIDRsp() *MBReportServerIDRsp {
+	panic("unsupported!")
+
+	return &MBReportServerIDRsp{}
+}
+
+func EmptyReportServerIDRsp() *MBReportServerIDRsp {
+	return &MBReportServerIDRsp{}
+}
+
 type MBReportServerIDRsp struct {
 }
 
 func (s *MBReportServerIDRsp) FuncCode() byte {
 	return ReportServerID
+}
+
+func (s *MBReportServerIDRsp) Encode(buffVal []byte) (ret []byte, err byte) {
+	panic("unsupported!")
+	return
+}
+
+func (s *MBReportServerIDRsp) Decode(byteData []byte) (err byte) {
+	panic("unsupported!")
+	return
 }
 
 func NewReadFileRecordReq() *MBReadFileRecordReq {
@@ -315,6 +490,14 @@ func (s *MBReadFileRecordReq) calcDataSize() byte {
 	return dataSize
 }
 
+func NewReadFileRecordRsp() *MBReadFileRecordRsp {
+	return &MBReadFileRecordRsp{}
+}
+
+func EmptyReadFileRecordRsp() *MBReadFileRecordRsp {
+	return &MBReadFileRecordRsp{}
+}
+
 type ReadResponseItem struct {
 	referenceType byte // 6
 	recordData    []byte
@@ -441,6 +624,14 @@ func (s *MBReadFileRecordRsp) calcDataSize() byte {
 	}
 
 	return dataSize
+}
+
+func NewWriteFileRecordReq() *MBWriteFileRecordReq {
+	return &MBWriteFileRecordReq{}
+}
+
+func EmptyWriteFileRecordReq() *MBWriteFileRecordReq {
+	return &MBWriteFileRecordReq{}
 }
 
 type WriteItem struct {
@@ -587,6 +778,14 @@ func (s *MBWriteFileRecordReq) calcDataSize() byte {
 	return dataSize
 }
 
+func NewWriteFileRecordRsp() *MBWriteFileRecordRsp {
+	return &MBWriteFileRecordRsp{}
+}
+
+func EmptyWriteFileRecordRsp() *MBWriteFileRecordRsp {
+	return &MBWriteFileRecordRsp{}
+}
+
 type MBWriteFileRecordRsp struct {
 	items []*WriteItem
 }
@@ -672,6 +871,14 @@ func (s *MBWriteFileRecordRsp) calcDataSize() byte {
 	return dataSize
 }
 
+func NewMaskWriteRegisterReq() *MBMaskWriteRegisterReq {
+	return &MBMaskWriteRegisterReq{}
+}
+
+func EmptyMaskWriteRegisterReq() *MBMaskWriteRegisterReq {
+	return &MBMaskWriteRegisterReq{}
+}
+
 type MBMaskWriteRegisterReq struct {
 	address uint16
 	andMask []byte
@@ -736,6 +943,14 @@ func (s *MBMaskWriteRegisterReq) OrMask() []byte {
 	return s.orMask
 }
 
+func NewMaskWriteRegisterRsp() *MBMaskWriteRegisterRsp {
+	return &MBMaskWriteRegisterRsp{}
+}
+
+func EmptyMaskWriteRegisterRsp() *MBMaskWriteRegisterRsp {
+	return &MBMaskWriteRegisterRsp{}
+}
+
 type MBMaskWriteRegisterRsp struct {
 	address uint16
 	andMask []byte
@@ -798,6 +1013,14 @@ func (s *MBMaskWriteRegisterRsp) AndMask() []byte {
 
 func (s *MBMaskWriteRegisterRsp) OrMask() []byte {
 	return s.orMask
+}
+
+func NewReadWriteMultipleRegistersReq() *MBReadWriteMultipleRegistersReq {
+	return &MBReadWriteMultipleRegistersReq{}
+}
+
+func EmptyReadWriteMultipleRegistersReq() *MBReadWriteMultipleRegistersReq {
+	return &MBReadWriteMultipleRegistersReq{}
 }
 
 type MBReadWriteMultipleRegistersReq struct {
@@ -873,6 +1096,14 @@ func (s *MBReadWriteMultipleRegistersReq) WriteData() []byte {
 	return s.writeData
 }
 
+func NewReadWriteMultipleRegistersRsp() *MBReadWriteMultipleRegistersRsp {
+	return &MBReadWriteMultipleRegistersRsp{}
+}
+
+func EmptyReadWriteMultipleRegistersRsp() *MBReadWriteMultipleRegistersRsp {
+	return &MBReadWriteMultipleRegistersRsp{}
+}
+
 type MBReadWriteMultipleRegistersRsp struct {
 	dataVal []byte
 }
@@ -911,6 +1142,14 @@ func (s *MBReadWriteMultipleRegistersRsp) Decode(byteData []byte) (err byte) {
 	dataSize := byteData[1]
 	s.dataVal = byteData[2 : 2+dataSize]
 	return
+}
+
+func NewReadFIFOQueueReq() *MBReadFIFOQueueReq {
+	return &MBReadFIFOQueueReq{}
+}
+
+func EmptyReadFIFOQueueReq() *MBReadFIFOQueueReq {
+	return &MBReadFIFOQueueReq{}
 }
 
 type MBReadFIFOQueueReq struct {
@@ -957,6 +1196,14 @@ func (s *MBReadFIFOQueueReq) Decode(byteData []byte) (err byte) {
 
 func (s *MBReadFIFOQueueReq) Address() uint16 {
 	return s.address
+}
+
+func NewReadFIFOQueueRsp() *MBReadFIFOQueueRsp {
+	return &MBReadFIFOQueueRsp{}
+}
+
+func EmptyReadFIFOQueueRsp() *MBReadFIFOQueueRsp {
+	return &MBReadFIFOQueueRsp{}
 }
 
 type MBReadFIFOQueueRsp struct {

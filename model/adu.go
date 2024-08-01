@@ -207,10 +207,30 @@ func decodeRequestPDU(bytesData []byte) (MBTcpHeader, MBProtocol, byte) {
 		protocol = EmptyWriteSingleCoilReq()
 	case WriteSingleRegister:
 		protocol = EmptyWriteSingleRegisterReq()
+	case ReadExceptionStatus:
+		protocol = EmptyReadExceptionStatusReq()
+	case Diagnostics:
+		protocol = EmptyDiagnosticsReq()
+	case GetCommEventCounter:
+		protocol = EmptyGetCommEventCounterReq()
+	case GetCommEventLog:
+		protocol = EmptyGetCommEventLogReq()
 	case WriteMultipleCoils:
 		protocol = EmptyWriteMultipleCoilsReq()
 	case WriteMultipleRegisters:
 		protocol = EmptyWriteMultipleRegistersReq()
+	case ReportServerID:
+		protocol = EmptyReportServerIDReq()
+	case ReadFileRecord:
+		protocol = EmptyReadFileRecordReq()
+	case WriteFileRecord:
+		protocol = EmptyWriteFileRecordReq()
+	case MaskWriteRegister:
+		protocol = EmptyMaskWriteRegisterReq()
+	case ReadWriteMultipleRegisters:
+		protocol = EmptyReadWriteMultipleRegistersReq()
+	case ReadFIFOQueue:
+		protocol = EmptyReadFIFOQueueReq()
 	default:
 		err = IllegalFuncCode
 	}
@@ -248,10 +268,30 @@ func decodeResponsePDU(bytesData []byte) (MBTcpHeader, MBProtocol, byte) {
 		protocol = EmptyWriteSingleCoilRsp()
 	case WriteSingleRegister:
 		protocol = EmptyWriteSingleRegisterRsp()
+	case ReadExceptionStatus:
+		protocol = EmptyReadExceptionStatusRsp()
+	case Diagnostics:
+		protocol = EmptyDiagnosticsRsp()
+	case GetCommEventCounter:
+		protocol = EmptyGetCommEventCounterRsp()
+	case GetCommEventLog:
+		protocol = EmptyGetCommEventLogRsp()
 	case WriteMultipleCoils:
 		protocol = EmptyWriteMultipleCoilsRsp()
 	case WriteMultipleRegisters:
 		protocol = EmptyWriteMultipleRegistersRsp()
+	case ReportServerID:
+		protocol = EmptyReportServerIDRsp()
+	case ReadFileRecord:
+		protocol = EmptyReadFileRecordRsp()
+	case WriteFileRecord:
+		protocol = EmptyWriteFileRecordRsp()
+	case MaskWriteRegister:
+		protocol = EmptyMaskWriteRegisterRsp()
+	case ReadWriteMultipleRegisters:
+		protocol = EmptyReadWriteMultipleRegistersRsp()
+	case ReadFIFOQueue:
+		protocol = EmptyReadFIFOQueueRsp()
 	default:
 		err = IllegalFuncCode
 	}
