@@ -15,7 +15,7 @@ const ModbusProtocol = 0
 /*
 | Primary tables    | Object type | Type of    | Comments                                                      |
 | :---------------- | :---------- | :--------- | :------------------------------------------------------------ |
-| Discrete Input   | Single bit  | Read-Only  | This type of data can be provided by an l/0 system.           |
+| Discrete Input    | Single bit  | Read-Only  | This type of data can be provided by an l/0 system.           |
 | Coils             | Single bit  | Read-Write | This type of data can be alterable by an application program. |
 | Input Registers   | 16-bit word | Read-Only  | This type of data can be provided by an l/O system            |
 | Holding Registers | 16-bit word | Read-Write | This type of data can be alterable by an application program  |
