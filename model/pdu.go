@@ -24,7 +24,7 @@ func (s *MBReadExceptionStatusReq) Encode(buffVal []byte) (ret []byte, err byte)
 		}
 	}()
 
-	buffVal = append(buffVal, ReadExceptionStatus)
+	buffVal = append(buffVal, s.FuncCode())
 
 	ret = buffVal
 	return
@@ -38,7 +38,7 @@ func (s *MBReadExceptionStatusReq) Decode(byteData []byte) (err byte) {
 	}()
 
 	funcCode := byteData[0]
-	if funcCode != ReadExceptionStatus {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -60,7 +60,7 @@ func (s *MBReadExceptionStatusRsp) Encode(buffVal []byte) (ret []byte, err byte)
 		}
 	}()
 
-	buffVal = append(buffVal, ReadExceptionStatus)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = append(buffVal, s.statusVal)
 
 	ret = buffVal
@@ -79,7 +79,7 @@ func (s *MBReadExceptionStatusRsp) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != ReadExceptionStatus {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -244,7 +244,7 @@ func (s *MBReadFileRecordReq) Encode(buffVal []byte) (ret []byte, err byte) {
 		}
 	}()
 
-	buffVal = append(buffVal, ReadFileRecord)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = append(buffVal, s.calcDataSize())
 	for _, val := range s.items {
 		buffVal, err = val.encode(buffVal)
@@ -268,7 +268,7 @@ func (s *MBReadFileRecordReq) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != ReadFileRecord {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -374,7 +374,7 @@ func (s *MBReadFileRecordRsp) Encode(buffVal []byte) (ret []byte, err byte) {
 			err = IllegalData
 		}
 	}()
-	buffVal = append(buffVal, ReadFileRecord)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = append(buffVal, s.calcDataSize())
 	for _, val := range s.items {
 		buffVal, err = val.encode(buffVal)
@@ -398,7 +398,7 @@ func (s *MBReadFileRecordRsp) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != ReadFileRecord {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -516,7 +516,7 @@ func (s *MBWriteFileRecordReq) Encode(buffVal []byte) (ret []byte, err byte) {
 			err = IllegalData
 		}
 	}()
-	buffVal = append(buffVal, WriteFileRecord)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = append(buffVal, s.calcDataSize())
 	for _, val := range s.items {
 		buffVal, err = val.encode(buffVal)
@@ -540,7 +540,7 @@ func (s *MBWriteFileRecordReq) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != WriteFileRecord {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -601,7 +601,7 @@ func (s *MBWriteFileRecordRsp) Encode(buffVal []byte) (ret []byte, err byte) {
 			err = IllegalData
 		}
 	}()
-	buffVal = append(buffVal, WriteFileRecord)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = append(buffVal, s.calcDataSize())
 	for _, val := range s.items {
 		buffVal, err = val.encode(buffVal)
@@ -625,7 +625,7 @@ func (s *MBWriteFileRecordRsp) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != WriteFileRecord {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -689,7 +689,7 @@ func (s *MBMaskWriteRegisterReq) Encode(buffVal []byte) (ret []byte, err byte) {
 		}
 	}()
 
-	buffVal = append(buffVal, MaskWriteRegister)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
 	buffVal = append(buffVal, s.andMask...)
 	buffVal = append(buffVal, s.orMask...)
@@ -713,7 +713,7 @@ func (s *MBMaskWriteRegisterReq) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != MaskWriteRegister {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -753,7 +753,7 @@ func (s *MBMaskWriteRegisterRsp) Encode(buffVal []byte) (ret []byte, err byte) {
 		}
 	}()
 
-	buffVal = append(buffVal, MaskWriteRegister)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
 	buffVal = append(buffVal, s.andMask...)
 	buffVal = append(buffVal, s.orMask...)
@@ -777,7 +777,7 @@ func (s *MBMaskWriteRegisterRsp) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != MaskWriteRegister {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -819,7 +819,7 @@ func (s *MBReadWriteMultipleRegistersReq) Encode(buffVal []byte) (ret []byte, er
 		}
 	}()
 
-	buffVal = append(buffVal, ReadWriteMultipleRegisters)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.readAddress)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.readCount)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.writeAddress)
@@ -839,7 +839,7 @@ func (s *MBReadWriteMultipleRegistersReq) Decode(byteData []byte) (err byte) {
 	}()
 
 	funcCode := byteData[0]
-	if funcCode != ReadWriteMultipleRegisters {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -888,7 +888,7 @@ func (s *MBReadWriteMultipleRegistersRsp) Encode(buffVal []byte) (ret []byte, er
 		}
 	}()
 
-	buffVal = append(buffVal, ReadWriteMultipleRegisters)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = append(buffVal, byte(len(s.dataVal)))
 	buffVal = append(buffVal, s.dataVal...)
 
@@ -903,7 +903,7 @@ func (s *MBReadWriteMultipleRegistersRsp) Decode(byteData []byte) (err byte) {
 		}
 	}()
 	funcCode := byteData[0]
-	if funcCode != ReadWriteMultipleRegisters {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -928,7 +928,7 @@ func (s *MBReadFIFOQueueReq) Encode(buffVal []byte) (ret []byte, err byte) {
 		}
 	}()
 
-	buffVal = append(buffVal, ReadFIFOQueue)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
 
 	ret = buffVal
@@ -946,7 +946,7 @@ func (s *MBReadFIFOQueueReq) Decode(byteData []byte) (err byte) {
 	}()
 
 	funcCode := byteData[0]
-	if funcCode != ReadFIFOQueue {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -975,7 +975,7 @@ func (s *MBReadFIFOQueueRsp) Encode(buffVal []byte) (ret []byte, err byte) {
 		}
 	}()
 
-	buffVal = append(buffVal, ReadFIFOQueue)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = binary.BigEndian.AppendUint16(buffVal, uint16(len(s.dataVal))+2)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.dataCount)
 	buffVal = append(buffVal, s.dataVal...)
@@ -995,7 +995,7 @@ func (s *MBReadFIFOQueueRsp) Decode(byteData []byte) (err byte) {
 	}()
 
 	funcCode := byteData[0]
-	if funcCode != ReadFIFOQueue {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}

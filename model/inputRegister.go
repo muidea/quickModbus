@@ -34,7 +34,7 @@ func (s *MBReadInputRegistersReq) Encode(buffVal []byte) (ret []byte, err byte) 
 		return
 	}
 
-	buffVal = append(buffVal, ReadInputRegisters)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.count)
 	ret = buffVal
@@ -61,7 +61,7 @@ func (s *MBReadInputRegistersReq) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != ReadInputRegisters {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -106,7 +106,7 @@ func (s *MBReadInputRegistersRsp) Encode(buffVal []byte) (ret []byte, err byte) 
 		}
 	}()
 
-	buffVal = append(buffVal, ReadInputRegisters)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = append(buffVal, s.count)
 	buffVal = append(buffVal, s.data...)
 
@@ -126,7 +126,7 @@ func (s *MBReadInputRegistersRsp) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != ReadInputRegisters {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -171,7 +171,7 @@ func (s *MBWriteSingleRegisterReq) Encode(buffVal []byte) (ret []byte, err byte)
 		}
 	}()
 
-	buffVal = append(buffVal, WriteSingleRegister)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
 	buffVal = append(buffVal, s.data...)
 
@@ -194,7 +194,7 @@ func (s *MBWriteSingleRegisterReq) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != WriteSingleRegister {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -239,7 +239,7 @@ func (s *MBWriteSingleRegisterRsp) Encode(buffVal []byte) (ret []byte, err byte)
 		}
 	}()
 
-	buffVal = append(buffVal, WriteSingleRegister)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
 	buffVal = append(buffVal, s.data...)
 
@@ -259,7 +259,7 @@ func (s *MBWriteSingleRegisterRsp) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != WriteSingleRegister {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -313,7 +313,7 @@ func (s *MBWriteMultipleRegistersReq) Encode(buffVal []byte) (ret []byte, err by
 		return
 	}
 
-	buffVal = append(buffVal, WriteMultipleRegisters)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.count)
 	buffVal = append(buffVal, s.dataSize)
@@ -344,7 +344,7 @@ func (s *MBWriteMultipleRegistersReq) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != WriteMultipleRegisters {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -404,7 +404,7 @@ func (s *MBWriteMultipleRegistersRsp) Encode(buffVal []byte) (ret []byte, err by
 		return
 	}
 
-	buffVal = append(buffVal, WriteMultipleRegisters)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.count)
 
@@ -432,7 +432,7 @@ func (s *MBWriteMultipleRegistersRsp) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != WriteMultipleRegisters {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}

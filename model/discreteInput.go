@@ -34,7 +34,7 @@ func (s *MBReadDiscreteInputsReq) Encode(buffVal []byte) (ret []byte, err byte) 
 		return
 	}
 
-	buffVal = append(buffVal, ReadDiscreteInputs)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.count)
 
@@ -62,7 +62,7 @@ func (s *MBReadDiscreteInputsReq) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != ReadDiscreteInputs {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -107,7 +107,7 @@ func (s *MBReadDiscreteInputsRsp) Encode(buffVal []byte) (ret []byte, err byte) 
 		}
 	}()
 
-	buffVal = append(buffVal, ReadDiscreteInputs)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = append(buffVal, s.count)
 	buffVal = append(buffVal, s.data...)
 
@@ -127,7 +127,7 @@ func (s *MBReadDiscreteInputsRsp) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != ReadDiscreteInputs {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}

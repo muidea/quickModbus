@@ -37,7 +37,7 @@ func (s *MBReadCoilsReq) Encode(buffVal []byte) (ret []byte, err byte) {
 		return
 	}
 
-	buffVal = append(buffVal, ReadCoils)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.count)
 
@@ -65,7 +65,7 @@ func (s *MBReadCoilsReq) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != ReadCoils {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -110,7 +110,7 @@ func (s *MBReadCoilsRsp) Encode(buffVal []byte) (ret []byte, err byte) {
 		}
 	}()
 
-	buffVal = append(buffVal, ReadCoils)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = append(buffVal, s.count)
 	buffVal = append(buffVal, s.data...)
 
@@ -134,7 +134,7 @@ func (s *MBReadCoilsRsp) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != ReadCoils {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -184,7 +184,7 @@ func (s *MBWriteSingleCoilReq) Encode(buffVal []byte) (ret []byte, err byte) {
 		return
 	}
 
-	buffVal = append(buffVal, WriteSingleCoil)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
 	buffVal = append(buffVal, s.data...)
 
@@ -212,7 +212,7 @@ func (s *MBWriteSingleCoilReq) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != WriteSingleCoil {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -262,7 +262,7 @@ func (s *MBWriteSingleCoilRsp) Encode(buffVal []byte) (ret []byte, err byte) {
 		return
 	}
 
-	buffVal = append(buffVal, WriteSingleCoil)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = binary.BigEndian.AppendUint16(ret, s.address)
 	buffVal = append(buffVal, s.data...)
 
@@ -290,7 +290,7 @@ func (s *MBWriteSingleCoilRsp) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != WriteSingleCoil {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -344,7 +344,7 @@ func (s *MBWriteMultipleCoilsReq) Encode(buffVal []byte) (ret []byte, err byte) 
 		return
 	}
 
-	buffVal = append(buffVal, WriteMultipleCoils)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.count)
 	buffVal = append(buffVal, s.dataSize)
@@ -375,7 +375,7 @@ func (s *MBWriteMultipleCoilsReq) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != WriteMultipleCoils {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -435,7 +435,7 @@ func (s *MBWriteMultipleCoilsRsp) Encode(buffVal []byte) (ret []byte, err byte) 
 		return
 	}
 
-	buffVal = append(buffVal, WriteMultipleCoils)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.count)
 
@@ -463,7 +463,7 @@ func (s *MBWriteMultipleCoilsRsp) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != WriteMultipleCoils {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}

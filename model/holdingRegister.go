@@ -34,7 +34,7 @@ func (s *MBReadHoldingRegistersReq) Encode(buffVal []byte) (ret []byte, err byte
 		return
 	}
 
-	buffVal = append(buffVal, ReadHoldingRegisters)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.count)
 
@@ -62,7 +62,7 @@ func (s *MBReadHoldingRegistersReq) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != ReadHoldingRegisters {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
@@ -107,7 +107,7 @@ func (s *MBReadHoldingRegistersRsp) Encode(buffVal []byte) (ret []byte, err byte
 		}
 	}()
 
-	buffVal = append(buffVal, ReadHoldingRegisters)
+	buffVal = append(buffVal, s.FuncCode())
 	buffVal = append(buffVal, s.count)
 	buffVal = append(buffVal, s.data...)
 
@@ -127,7 +127,7 @@ func (s *MBReadHoldingRegistersRsp) Decode(byteData []byte) (err byte) {
 	}
 
 	funcCode := byteData[0]
-	if funcCode != ReadHoldingRegisters {
+	if funcCode != s.FuncCode() {
 		err = IllegalFuncCode
 		return
 	}
