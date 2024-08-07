@@ -33,7 +33,7 @@ const (
 	GetCommEventLog            = byte(0x0C)
 	WriteMultipleCoils         = byte(0x0F)
 	WriteMultipleRegisters     = byte(0x10)
-	ReportServerID             = byte(0x11)
+	ReportSlaveID              = byte(0x11)
 	ReadFileRecord             = byte(0x14)
 	WriteFileRecord            = byte(0x15)
 	MaskWriteRegister          = byte(0x16)

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"bytes"
 	"encoding/hex"
 	"testing"
 )
@@ -16,14 +17,10 @@ func TestDecodeMB005(t *testing.T) {
 		return
 	}
 
-	header, protocol, errCode := DecodeMBProtocol(byteVal, RequestAction)
+	byteBuff := bytes.NewBuffer(byteVal)
+	_, protocol, errCode := DecodeMBProtocol(byteBuff, RequestAction)
 	if errCode != SuccessCode {
 		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
-		return
-	}
-
-	if header.Length() != aduTcpHeadLength {
-		t.Errorf("decode mb header failed")
 		return
 	}
 
@@ -53,14 +50,10 @@ func TestDecodeMB005(t *testing.T) {
 		return
 	}
 
-	header, protocol, errCode = DecodeMBProtocol(byteVal, ResponseAction)
+	byteBuff = bytes.NewBuffer(byteVal)
+	_, protocol, errCode = DecodeMBProtocol(byteBuff, ResponseAction)
 	if errCode != SuccessCode {
 		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
-		return
-	}
-
-	if header.Length() != aduTcpHeadLength {
-		t.Errorf("decode mb header failed")
 		return
 	}
 
@@ -74,7 +67,7 @@ func TestDecodeMB005(t *testing.T) {
 		t.Errorf("decode ReadHoldingRegisters response failed")
 		return
 	}
-	if rspPtr.Count() != 13*2 {
+	if len(rspPtr.Data()) != 13*2 {
 		t.Errorf("decode ReadHoldingRegisters response count failed")
 		return
 	}

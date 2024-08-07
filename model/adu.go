@@ -2,7 +2,7 @@ package model
 
 import (
 	"encoding/binary"
-	"github.com/muidea/magicCommon/foundation/log"
+	"io"
 )
 
 const MaxAduSize = 256
@@ -12,16 +12,14 @@ type MBTcpHeader interface {
 	Protocol() uint16
 	DataLen() uint16
 	UnitID() byte
-	Encode(buffVal []byte) (ret []byte, err byte)
-	Decode(byteData []byte) (err byte)
-	Length() uint16
+	Encode(writer io.Writer) (err byte)
+	Decode(reader io.Reader) (err byte)
 }
 
 type MBSerialHeader interface {
 	Address() byte
-	Encode(buffVal []byte) (ret []byte, err byte)
-	Decode(byteData []byte) (err byte)
-	Length() uint16
+	Encode(writer io.Writer) (err byte)
+	Decode(reader io.Reader) (err byte)
 }
 
 type mbTcpHeader struct {
@@ -59,42 +57,45 @@ func (s *mbTcpHeader) UnitID() byte {
 	return s.unitID
 }
 
-func (s *mbTcpHeader) Encode(buffVal []byte) (ret []byte, err byte) {
+func (s *mbTcpHeader) Encode(writer io.Writer) (err byte) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
 			err = IllegalData
 		}
 	}()
 
+	buffVal := make([]byte, 0)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.transaction)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.protocol)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.dataLen)
 	buffVal = append(buffVal, s.unitID)
+	wSize, wErr := writer.Write(buffVal)
+	if wErr != nil || wSize != aduTcpHeadLength {
+		err = IllegalAddress
+	}
 
-	ret = buffVal
 	return
 }
 
-func (s *mbTcpHeader) Decode(byteData []byte) (err byte) {
+func (s *mbTcpHeader) Decode(reader io.Reader) (err byte) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
 			err = IllegalData
 		}
 	}()
-	if len(byteData) < aduTcpHeadLength {
+
+	dataVal := make([]byte, aduTcpHeadLength)
+	rSize, rErr := reader.Read(dataVal)
+	if rErr != nil || rSize != aduTcpHeadLength {
 		err = IllegalData
 		return
 	}
 
-	s.transaction = binary.BigEndian.Uint16(byteData[0:2])
-	s.protocol = binary.BigEndian.Uint16(byteData[2:4])
-	s.dataLen = binary.BigEndian.Uint16(byteData[4:6])
-	s.unitID = byteData[6]
+	s.transaction = binary.BigEndian.Uint16(dataVal[0:2])
+	s.protocol = binary.BigEndian.Uint16(dataVal[2:4])
+	s.dataLen = binary.BigEndian.Uint16(dataVal[4:6])
+	s.unitID = dataVal[6]
 	return
-}
-
-func (s *mbTcpHeader) Length() uint16 {
-	return aduTcpHeadLength
 }
 
 func (s *mbTcpHeader) Same(ptr *mbTcpHeader) bool {
@@ -124,77 +125,87 @@ func (s *mbSerialHeader) Address() byte {
 	return s.address
 }
 
-func (s *mbSerialHeader) Encode(buffVal []byte) (ret []byte, err byte) {
+func (s *mbSerialHeader) Encode(writer io.Writer) (err byte) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
 			err = IllegalData
 		}
 	}()
 
-	buffVal = append(buffVal, s.address)
+	wSize, wErr := writer.Write([]byte{s.address})
+	if wErr != nil || wSize != aduSerialHeadLength {
+		err = IllegalAddress
+		return
+	}
 
-	ret = buffVal
 	return
 }
 
-func (s *mbSerialHeader) Decode(byteData []byte) (err byte) {
+func (s *mbSerialHeader) Decode(reader io.Reader) (err byte) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
 			err = IllegalData
 		}
 	}()
-	if len(byteData) < aduSerialHeadLength {
+
+	dataVal := make([]byte, aduSerialHeadLength)
+	rSize, rErr := reader.Read(dataVal)
+	if rErr != nil || rSize != aduSerialHeadLength {
 		err = IllegalData
 		return
 	}
 
-	s.address = byteData[0]
+	s.address = dataVal[0]
 	return
 }
 
-func (s *mbSerialHeader) Length() uint16 {
-	return aduSerialHeadLength
-}
-
-func EncodeMBProtocol(header MBTcpHeader, pdu MBProtocol, buffVal []byte) (ret []byte, err byte) {
-	buffVal, err = header.Encode(buffVal)
+func EncodeMBProtocol(header MBTcpHeader, pdu MBProtocol, writer io.Writer) (err byte) {
+	err = header.Encode(writer)
 	if err != SuccessCode {
 		return
 	}
 
-	buffVal, err = pdu.Encode(buffVal)
-	if err != SuccessCode {
+	wSize, wErr := writer.Write([]byte{pdu.FuncCode()})
+	if wErr != nil || wSize != 1 {
+		err = IllegalAddress
 		return
 	}
 
-	buffVal = append(buffVal, buffVal...)
-	buffVal = append(buffVal, buffVal...)
-	ret = buffVal
+	err = pdu.EncodePayload(writer)
+	if err != SuccessCode {
+		return
+	}
 	return
 }
 
-func DecodeMBProtocol(bytesData []byte, actionType int) (MBTcpHeader, MBProtocol, byte) {
-	if len(bytesData) < aduTcpHeadLength+1 {
-		log.Errorf("not enough data, data size:%d", len(bytesData))
-		return nil, nil, IllegalData
-	}
-
+func DecodeMBProtocol(reader io.Reader, actionType int) (MBTcpHeader, MBProtocol, byte) {
 	if actionType == RequestAction {
-		return decodeRequestPDU(bytesData)
+		return decodeRequestPDU(reader)
 	}
 
 	if actionType == ResponseAction {
-		return decodeResponsePDU(bytesData)
+		return decodeResponsePDU(reader)
 	}
 
 	return nil, nil, IllegalData
 }
 
-func decodeRequestPDU(bytesData []byte) (MBTcpHeader, MBProtocol, byte) {
-	var header MBTcpHeader
+func decodeRequestPDU(reader io.Reader) (MBTcpHeader, MBProtocol, byte) {
+	header := EmptyTcpHeader()
+	err := header.Decode(reader)
+	if err != SuccessCode {
+		return nil, nil, err
+	}
+
+	funcCode := make([]byte, 1)
+	rSize, rErr := reader.Read(funcCode)
+	if rErr != nil || rSize != 1 {
+		err = IllegalAddress
+		return nil, nil, err
+	}
+
 	var protocol MBProtocol
-	var err byte
-	switch bytesData[aduTcpHeadLength] {
+	switch funcCode[0] {
 	case ReadCoils:
 		protocol = EmptyReadCoilsReq()
 	case ReadDiscreteInputs:
@@ -219,8 +230,8 @@ func decodeRequestPDU(bytesData []byte) (MBTcpHeader, MBProtocol, byte) {
 		protocol = EmptyWriteMultipleCoilsReq()
 	case WriteMultipleRegisters:
 		protocol = EmptyWriteMultipleRegistersReq()
-	case ReportServerID:
-		protocol = EmptyReportServerIDReq()
+	case ReportSlaveID:
+		protocol = EmptyReportSlaveIDReq()
 	case ReadFileRecord:
 		protocol = EmptyReadFileRecordReq()
 	case WriteFileRecord:
@@ -238,12 +249,10 @@ func decodeRequestPDU(bytesData []byte) (MBTcpHeader, MBProtocol, byte) {
 	if err != SuccessCode {
 		return nil, nil, err
 	}
-	header = EmptyTcpHeader()
-	err = header.Decode(bytesData)
 	if err != SuccessCode {
 		return nil, nil, err
 	}
-	err = protocol.Decode(bytesData[header.Length():])
+	err = protocol.DecodePayload(reader)
 	if err != SuccessCode {
 		return nil, nil, err
 	}
@@ -251,11 +260,22 @@ func decodeRequestPDU(bytesData []byte) (MBTcpHeader, MBProtocol, byte) {
 	return header, protocol, err
 }
 
-func decodeResponsePDU(bytesData []byte) (MBTcpHeader, MBProtocol, byte) {
-	var header MBTcpHeader
+func decodeResponsePDU(reader io.Reader) (MBTcpHeader, MBProtocol, byte) {
+	header := EmptyTcpHeader()
+	err := header.Decode(reader)
+	if err != SuccessCode {
+		return nil, nil, err
+	}
+
+	funcCode := make([]byte, 1)
+	rSize, rErr := reader.Read(funcCode)
+	if rErr != nil || rSize != 1 {
+		err = IllegalAddress
+		return nil, nil, err
+	}
+
 	var protocol MBProtocol
-	var err byte
-	switch bytesData[aduTcpHeadLength] {
+	switch funcCode[0] {
 	case ReadCoils:
 		protocol = EmptyReadCoilsRsp()
 	case ReadDiscreteInputs:
@@ -280,8 +300,8 @@ func decodeResponsePDU(bytesData []byte) (MBTcpHeader, MBProtocol, byte) {
 		protocol = EmptyWriteMultipleCoilsRsp()
 	case WriteMultipleRegisters:
 		protocol = EmptyWriteMultipleRegistersRsp()
-	case ReportServerID:
-		protocol = EmptyReportServerIDRsp()
+	case ReportSlaveID:
+		protocol = EmptyReportSlaveIDRsp()
 	case ReadFileRecord:
 		protocol = EmptyReadFileRecordRsp()
 	case WriteFileRecord:
@@ -299,12 +319,10 @@ func decodeResponsePDU(bytesData []byte) (MBTcpHeader, MBProtocol, byte) {
 	if err != SuccessCode {
 		return nil, nil, err
 	}
-	header = EmptyTcpHeader()
-	err = header.Decode(bytesData)
 	if err != SuccessCode {
 		return nil, nil, err
 	}
-	err = protocol.Decode(bytesData[header.Length():])
+	err = protocol.DecodePayload(reader)
 	if err != SuccessCode {
 		return nil, nil, err
 	}

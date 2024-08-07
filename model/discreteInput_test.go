@@ -1,6 +1,7 @@
 package model
 
 import (
+	"bytes"
 	"encoding/hex"
 	"testing"
 )
@@ -16,14 +17,10 @@ func TestDecodeMB003(t *testing.T) {
 		return
 	}
 
-	header, protocol, errCode := DecodeMBProtocol(byteVal, RequestAction)
+	byteBuff := bytes.NewBuffer(byteVal)
+	_, protocol, errCode := DecodeMBProtocol(byteBuff, RequestAction)
 	if errCode != SuccessCode {
 		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
-		return
-	}
-
-	if header.Length() != aduTcpHeadLength {
-		t.Errorf("decode mb header failed")
 		return
 	}
 
@@ -53,14 +50,10 @@ func TestDecodeMB003(t *testing.T) {
 		return
 	}
 
-	header, protocol, errCode = DecodeMBProtocol(byteVal, ResponseAction)
+	byteBuff = bytes.NewBuffer(byteVal)
+	_, protocol, errCode = DecodeMBProtocol(byteBuff, ResponseAction)
 	if errCode != SuccessCode {
 		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
-		return
-	}
-
-	if header.Length() != aduTcpHeadLength {
-		t.Errorf("decode mb header failed")
 		return
 	}
 
@@ -72,10 +65,6 @@ func TestDecodeMB003(t *testing.T) {
 	rspPtr, rspOK := protocol.(*MBReadDiscreteInputsRsp)
 	if !rspOK {
 		t.Errorf("decode ReadDiscreteInputs response failed")
-		return
-	}
-	if rspPtr.Count() != 2 {
-		t.Errorf("decode ReadDiscreteInputs response count failed")
 		return
 	}
 
@@ -111,14 +100,10 @@ func TestDecodeMB004(t *testing.T) {
 		return
 	}
 
-	header, protocol, errCode := DecodeMBProtocol(byteVal, RequestAction)
+	byteBuff := bytes.NewBuffer(byteVal)
+	_, protocol, errCode := DecodeMBProtocol(byteBuff, RequestAction)
 	if errCode != SuccessCode {
 		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
-		return
-	}
-
-	if header.Length() != aduTcpHeadLength {
-		t.Errorf("decode mb header failed")
 		return
 	}
 
@@ -148,14 +133,10 @@ func TestDecodeMB004(t *testing.T) {
 		return
 	}
 
-	header, protocol, errCode = DecodeMBProtocol(byteVal, ResponseAction)
+	byteBuff = bytes.NewBuffer(byteVal)
+	_, protocol, errCode = DecodeMBProtocol(byteBuff, ResponseAction)
 	if errCode != SuccessCode {
 		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
-		return
-	}
-
-	if header.Length() != aduTcpHeadLength {
-		t.Errorf("decode mb header failed")
 		return
 	}
 
@@ -167,10 +148,6 @@ func TestDecodeMB004(t *testing.T) {
 	rspPtr, rspOK := protocol.(*MBReadDiscreteInputsRsp)
 	if !rspOK {
 		t.Errorf("decode ReadDiscreteInputs response failed")
-		return
-	}
-	if rspPtr.Count() != 4 {
-		t.Errorf("decode ReadDiscreteInputs response count failed")
 		return
 	}
 

@@ -32,13 +32,14 @@ func checkCoilsReq(t *testing.T, req *MBReadCoilsReq, strReq string) error {
 	var byteVal []byte
 	var byteErr error
 	var resultCode byte
-	byteVal, resultCode = req.Encode(byteVal)
+	byteBuffer := bytes.NewBuffer(byteVal)
+	resultCode = req.Encode(byteBuffer)
 	if resultCode != SuccessCode {
 		t.Error("Encode MBReadCoilsReq failed")
 		return fmt.Errorf("%v", "Encode MBReadCoilsReq failed")
 	}
 
-	strVal := hex.EncodeToString(byteVal)
+	strVal := hex.EncodeToString(byteBuffer.Bytes())
 	if strings.ToUpper(strVal) != strReq {
 		t.Error("Encode MBReadCoilsReq failed")
 		return fmt.Errorf("%v", "Encode MBReadCoilsReq failed")
@@ -50,18 +51,19 @@ func checkCoilsReq(t *testing.T, req *MBReadCoilsReq, strReq string) error {
 		return byteErr
 	}
 
+	byteBuffer = bytes.NewBuffer(byteVal)
 	reqNew := &MBReadCoilsReq{}
-	resultCode = reqNew.Decode(byteVal)
+	resultCode = reqNew.Decode(byteBuffer)
 	if resultCode != SuccessCode {
 		t.Error("Decode MBReadCoilsReq failed")
 		return fmt.Errorf("%v", "Decode MBReadCoilsReq failed")
 	}
 	if reqNew.FuncCode() != ReadCoils {
-		t.Error("missmatch func code")
+		t.Error("mismatch func code")
 		return fmt.Errorf("%v", "missmatch func code")
 	}
 	if req.count != reqNew.count || req.address != reqNew.address {
-		t.Error("missmatch address or address")
+		t.Error("mismatch address or address")
 		return fmt.Errorf("%v", "missmatch address or address")
 	}
 
@@ -70,8 +72,7 @@ func checkCoilsReq(t *testing.T, req *MBReadCoilsReq, strReq string) error {
 
 func TestMBReadCoilsRsp(t *testing.T) {
 	rsp := &MBReadCoilsRsp{
-		count: byte(3),
-		data:  []byte{0x15, 0x00, 0x01},
+		data: []byte{0x15, 0x00, 0x01},
 	}
 
 	if checkCoilsRsp(t, rsp, "0103150001") != nil {
@@ -79,8 +80,7 @@ func TestMBReadCoilsRsp(t *testing.T) {
 	}
 
 	rsp = &MBReadCoilsRsp{
-		count: byte(7),
-		data:  []byte{0x03, 0x00, 0x00, 0x00, 0x00, 0x80, 0x03},
+		data: []byte{0x03, 0x00, 0x00, 0x00, 0x00, 0x80, 0x03},
 	}
 
 	if checkCoilsRsp(t, rsp, "010703000000008003") != nil {
@@ -92,13 +92,14 @@ func checkCoilsRsp(t *testing.T, rsp *MBReadCoilsRsp, strRsp string) error {
 	var byteVal []byte
 	var byteErr error
 	var resultCode byte
-	byteVal, resultCode = rsp.Encode(byteVal)
+	byteBuff := bytes.NewBuffer(byteVal)
+	resultCode = rsp.Encode(byteBuff)
 	if resultCode != SuccessCode {
 		t.Error("Encode MBReadCoilsRsp failed")
 		return fmt.Errorf("%v", "Encode MBReadCoilsRsp failed")
 	}
 
-	strVal := hex.EncodeToString(byteVal)
+	strVal := hex.EncodeToString(byteBuff.Bytes())
 	if strings.ToUpper(strVal) != strRsp {
 		t.Error("Encode MBReadCoilsRsp failed")
 		return fmt.Errorf("%v", "Encode MBReadCoilsRsp failed")
@@ -110,23 +111,20 @@ func checkCoilsRsp(t *testing.T, rsp *MBReadCoilsRsp, strRsp string) error {
 		return byteErr
 	}
 
+	byteBuff = bytes.NewBuffer(byteVal)
 	rspNew := &MBReadCoilsRsp{}
-	resultCode = rspNew.Decode(byteVal)
+	resultCode = rspNew.Decode(byteBuff)
 	if resultCode != SuccessCode {
 		t.Error("Decode MBReadCoilsRsp failed")
 		return fmt.Errorf("%v", "Decode MBReadCoilsRsp failed")
 	}
 	if rspNew.FuncCode() != ReadCoils {
-		t.Error("missmatch func code")
+		t.Error("mismatch func code")
 		return fmt.Errorf("%v", "missmatch func code")
-	}
-	if rsp.count != rspNew.count {
-		t.Error("missmatch address")
-		return fmt.Errorf("%v", "missmatch address")
 	}
 
 	if bytes.Compare(rsp.data, rspNew.data) != 0 {
-		t.Error("missmatch data")
+		t.Error("mismatch data")
 		return fmt.Errorf("%v", "missmatch date")
 	}
 
@@ -144,14 +142,10 @@ func TestDecodeMB001(t *testing.T) {
 		return
 	}
 
-	header, protocol, errCode := DecodeMBProtocol(byteVal, RequestAction)
+	byteBuff := bytes.NewBuffer(byteVal)
+	_, protocol, errCode := DecodeMBProtocol(byteBuff, RequestAction)
 	if errCode != SuccessCode {
 		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
-		return
-	}
-
-	if header.Length() != aduTcpHeadLength {
-		t.Errorf("decode mb header failed")
 		return
 	}
 
@@ -181,14 +175,10 @@ func TestDecodeMB001(t *testing.T) {
 		return
 	}
 
-	header, protocol, errCode = DecodeMBProtocol(byteVal, ResponseAction)
+	byteBuff = bytes.NewBuffer(byteVal)
+	_, protocol, errCode = DecodeMBProtocol(byteBuff, ResponseAction)
 	if errCode != SuccessCode {
 		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
-		return
-	}
-
-	if header.Length() != aduTcpHeadLength {
-		t.Errorf("decode mb header failed")
 		return
 	}
 
@@ -200,10 +190,6 @@ func TestDecodeMB001(t *testing.T) {
 	rspPtr, rspOK := protocol.(*MBReadCoilsRsp)
 	if !rspOK {
 		t.Errorf("decode ReadCoils response failed")
-		return
-	}
-	if rspPtr.Count() != 2 {
-		t.Errorf("decode ReadCoils response count failed")
 		return
 	}
 
@@ -239,14 +225,10 @@ func TestDecodeMB002(t *testing.T) {
 		return
 	}
 
-	header, protocol, errCode := DecodeMBProtocol(byteVal, RequestAction)
+	byteBuff := bytes.NewBuffer(byteVal)
+	_, protocol, errCode := DecodeMBProtocol(byteBuff, RequestAction)
 	if errCode != SuccessCode {
 		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
-		return
-	}
-
-	if header.Length() != aduTcpHeadLength {
-		t.Errorf("decode mb header failed")
 		return
 	}
 
@@ -276,14 +258,10 @@ func TestDecodeMB002(t *testing.T) {
 		return
 	}
 
-	header, protocol, errCode = DecodeMBProtocol(byteVal, ResponseAction)
+	byteBuff = bytes.NewBuffer(byteVal)
+	_, protocol, errCode = DecodeMBProtocol(byteBuff, ResponseAction)
 	if errCode != SuccessCode {
 		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
-		return
-	}
-
-	if header.Length() != aduTcpHeadLength {
-		t.Errorf("decode mb header failed")
 		return
 	}
 
@@ -295,10 +273,6 @@ func TestDecodeMB002(t *testing.T) {
 	rspPtr, rspOK := protocol.(*MBReadCoilsRsp)
 	if !rspOK {
 		t.Errorf("decode ReadCoils response failed")
-		return
-	}
-	if rspPtr.Count() != 2 {
-		t.Errorf("decode ReadCoils response count failed")
 		return
 	}
 
@@ -334,14 +308,10 @@ func TestDecodeMB010(t *testing.T) {
 		return
 	}
 
-	header, protocol, errCode := DecodeMBProtocol(byteVal, RequestAction)
+	byteBuff := bytes.NewBuffer(byteVal)
+	_, protocol, errCode := DecodeMBProtocol(byteBuff, RequestAction)
 	if errCode != SuccessCode {
 		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
-		return
-	}
-
-	if header.Length() != aduTcpHeadLength {
-		t.Errorf("decode mb header failed")
 		return
 	}
 
@@ -376,14 +346,10 @@ func TestDecodeMB010(t *testing.T) {
 		return
 	}
 
-	header, protocol, errCode = DecodeMBProtocol(byteVal, ResponseAction)
+	byteBuff = bytes.NewBuffer(byteVal)
+	_, protocol, errCode = DecodeMBProtocol(byteBuff, ResponseAction)
 	if errCode != SuccessCode {
 		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
-		return
-	}
-
-	if header.Length() != aduTcpHeadLength {
-		t.Errorf("decode mb header failed")
 		return
 	}
 
@@ -419,14 +385,10 @@ func TestDecodeMB011(t *testing.T) {
 		return
 	}
 
-	header, protocol, errCode := DecodeMBProtocol(byteVal, RequestAction)
+	byteBuff := bytes.NewBuffer(byteVal)
+	_, protocol, errCode := DecodeMBProtocol(byteBuff, RequestAction)
 	if errCode != SuccessCode {
 		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
-		return
-	}
-
-	if header.Length() != aduTcpHeadLength {
-		t.Errorf("decode mb header failed")
 		return
 	}
 
@@ -446,10 +408,6 @@ func TestDecodeMB011(t *testing.T) {
 	}
 	if reqPtr.Count() != 10 {
 		t.Errorf("decode WriteMultipleCoils request count failed")
-		return
-	}
-	if reqPtr.DataSize() != 2 {
-		t.Errorf("decode WriteMultipleCoils request dataSize failed")
 		return
 	}
 	if len(reqPtr.Data()) != 2 {
@@ -480,14 +438,10 @@ func TestDecodeMB011(t *testing.T) {
 		return
 	}
 
-	header, protocol, errCode = DecodeMBProtocol(byteVal, ResponseAction)
+	byteBuff = bytes.NewBuffer(byteVal)
+	_, protocol, errCode = DecodeMBProtocol(byteBuff, ResponseAction)
 	if errCode != SuccessCode {
 		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
-		return
-	}
-
-	if header.Length() != aduTcpHeadLength {
-		t.Errorf("decode mb header failed")
 		return
 	}
 
