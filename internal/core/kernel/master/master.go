@@ -4,6 +4,7 @@ import "github.com/muidea/magicEngine/tcp"
 
 type MBMaster struct {
 	tcpClient tcp.Client
+	serialNo  int
 }
 
 func (s *MBMaster) Run(serverAddr string) (err error) {
@@ -29,11 +30,11 @@ func (s *MBMaster) OnRecvData(ep tcp.Endpoint, data []byte) {
 
 }
 
-func (s *MBMaster) ReadCoils(address, count uint16) (ret []byte, err error) {
+func (s *MBMaster) ReadCoils(address, count uint16) (ret []bool, err error) {
 	return
 }
 
-func (s *MBMaster) ReadDiscreteInputs(address, count uint16) (ret []byte, err error) {
+func (s *MBMaster) ReadDiscreteInputs(address, count uint16) (ret []bool, err error) {
 	return
 }
 
