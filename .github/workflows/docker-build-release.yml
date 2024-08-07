@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 env:
-  PROJECT: quickModbus
+  PROJECT: quick-modbus
 
 jobs:
   image:
