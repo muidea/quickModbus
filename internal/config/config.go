@@ -15,3 +15,7 @@ func LoadConfig(cfgFile string) (err error) {
 	}
 	return
 }
+
+type config struct {
+	ModbusBindPort string `json:"modbusBindPort"`
+}
