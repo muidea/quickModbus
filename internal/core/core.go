@@ -6,10 +6,9 @@ import (
 	cd "github.com/muidea/magicCommon/def"
 	"github.com/muidea/magicCommon/event"
 	"github.com/muidea/magicCommon/module"
-	"github.com/muidea/magicCommon/session"
 	"github.com/muidea/magicCommon/task"
 
-	"github.com/muidea/magicEngine/http"
+	engine "github.com/muidea/magicEngine/http"
 
 	_ "github.com/muidea/quickModbus/internal/core/kernel/master"
 	_ "github.com/muidea/quickModbus/internal/core/kernel/slave"
@@ -31,23 +30,21 @@ type Core struct {
 	endpointName string
 	listenPort   string
 
-	sessionRegistry   session.Registry
-	httpServer        http.HTTPServer
+	httpServer        engine.HTTPServer
 	eventHub          event.Hub
 	backgroundRoutine task.BackgroundRoutine
 }
 
 // Startup 启动
 func (s *Core) Startup(eventHub event.Hub, backgroundRoutine task.BackgroundRoutine) (err *cd.Result) {
-	router := http.NewRouter()
-	sessionRegistry := session.CreateRegistry()
-	s.sessionRegistry = sessionRegistry
+	routeRegistry := engine.NewRouter()
 
-	s.httpServer = http.NewHTTPServer(s.listenPort)
-	s.httpServer.Bind(router)
+	s.httpServer = engine.NewHTTPServer(s.listenPort)
+	s.httpServer.Bind(routeRegistry)
 
 	modules := module.GetModules()
 	for _, val := range modules {
+		module.BindRegistry(val, routeRegistry)
 		module.Setup(val, s.endpointName, eventHub, backgroundRoutine)
 	}
 

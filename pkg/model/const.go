@@ -3,9 +3,6 @@ package model
 import "fmt"
 
 const (
-	minReqDataLength    = 5
-	minRspDataLength    = 2
-	pduReqHeadLength    = 5
 	aduTcpHeadLength    = 7
 	aduSerialHeadLength = 1
 )

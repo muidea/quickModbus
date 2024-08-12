@@ -16,6 +16,14 @@ func LoadConfig(cfgFile string) (err error) {
 	return
 }
 
+func BindAddr() string {
+	return "0.0.0.0:502"
+}
+
+func SlaveAddr() string {
+	return ""
+}
+
 type config struct {
 	ModbusBindPort string `json:"modbusBindPort"`
 }

@@ -441,8 +441,8 @@ func EmptyGetCommEventCounterRsp() *MBGetCommEventCounterRsp {
 }
 
 type MBGetCommEventCounterRsp struct {
-	commStatus   []byte
-	eventCounter uint16
+	commStatus []byte
+	eventCount uint16
 }
 
 func (s *MBGetCommEventCounterRsp) FuncCode() byte {
@@ -459,7 +459,7 @@ func (s *MBGetCommEventCounterRsp) Encode(writer io.Writer) (err byte) {
 	buffVal := make([]byte, 0)
 	buffVal = append(buffVal, s.FuncCode())
 	buffVal = append(buffVal, s.commStatus[0:2]...)
-	buffVal = binary.BigEndian.AppendUint16(buffVal, s.eventCounter)
+	buffVal = binary.BigEndian.AppendUint16(buffVal, s.eventCount)
 	wSize, wErr := writer.Write(buffVal)
 	if wErr != nil || wSize != buffSize {
 		err = IllegalAddress
@@ -478,7 +478,7 @@ func (s *MBGetCommEventCounterRsp) EncodePayload(writer io.Writer) (err byte) {
 	buffSize := 4
 	buffVal := make([]byte, 0)
 	buffVal = append(buffVal, s.commStatus[0:2]...)
-	buffVal = binary.BigEndian.AppendUint16(buffVal, s.eventCounter)
+	buffVal = binary.BigEndian.AppendUint16(buffVal, s.eventCount)
 	wSize, wErr := writer.Write(buffVal)
 	if wErr != nil || wSize != buffSize {
 		err = IllegalAddress
@@ -503,7 +503,7 @@ func (s *MBGetCommEventCounterRsp) Decode(reader io.Reader) (err byte) {
 	}
 
 	s.commStatus = dataVal[1:3]
-	s.eventCounter = binary.BigEndian.Uint16(dataVal[3:5])
+	s.eventCount = binary.BigEndian.Uint16(dataVal[3:5])
 	return
 }
 
@@ -517,7 +517,7 @@ func (s *MBGetCommEventCounterRsp) DecodePayload(reader io.Reader) (err byte) {
 	}
 
 	s.commStatus = dataVal[0:2]
-	s.eventCounter = binary.BigEndian.Uint16(dataVal[2:4])
+	s.eventCount = binary.BigEndian.Uint16(dataVal[2:4])
 	return
 }
 
@@ -525,8 +525,8 @@ func (s *MBGetCommEventCounterRsp) CommStatus() []byte {
 	return s.commStatus
 }
 
-func (s *MBGetCommEventCounterRsp) EventCounter() uint16 {
-	return s.eventCounter
+func (s *MBGetCommEventCounterRsp) EventCount() uint16 {
+	return s.eventCount
 }
 
 func NewGetCommEventLogReq() *MBGetCommEventLogReq {
