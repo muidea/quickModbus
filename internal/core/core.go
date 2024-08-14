@@ -37,7 +37,7 @@ type Core struct {
 
 // Startup 启动
 func (s *Core) Startup(eventHub event.Hub, backgroundRoutine task.BackgroundRoutine) (err *cd.Result) {
-	routeRegistry := engine.NewRouter()
+	routeRegistry := engine.NewRouteRegistry()
 
 	s.httpServer = engine.NewHTTPServer(s.listenPort)
 	s.httpServer.Bind(routeRegistry)

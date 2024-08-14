@@ -14,7 +14,7 @@ func init() {
 }
 
 type Master struct {
-	routeRegistry     engine.Router
+	routeRegistry     engine.RouteRegistry
 	eventHub          event.Hub
 	backgroundRoutine task.BackgroundRoutine
 }
@@ -27,7 +27,7 @@ func (s *Master) ID() string {
 	return common.MasterModule
 }
 
-func (s *Master) BindRegistry(router engine.Router) {
+func (s *Master) BindRegistry(router engine.RouteRegistry) {
 	s.routeRegistry = router
 }
 
