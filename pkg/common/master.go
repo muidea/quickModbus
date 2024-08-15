@@ -57,7 +57,6 @@ type ReadCoilsRequest struct {
 type ReadCoilsResponse struct {
 	cd.Result
 	Address int    `json:"address"`
-	Count   int    `json:"count"`
 	Values  []bool `json:"values"`
 }
 
@@ -69,7 +68,6 @@ type ReadDiscreteInputsRequest struct {
 type ReadDiscreteInputsResponse struct {
 	cd.Result
 	Address int    `json:"address"`
-	Count   int    `json:"count"`
 	Values  []bool `json:"values"`
 }
 
@@ -82,7 +80,6 @@ type ReadHoldingRegistersRequest struct {
 type ReadHoldingRegistersResponse struct {
 	cd.Result
 	Address int           `json:"address"`
-	Count   int           `json:"count"`
 	Values  []interface{} `json:"values"`
 }
 
@@ -95,7 +92,6 @@ type ReadReadInputRegistersRequest struct {
 type ReadReadInputRegistersResponse struct {
 	cd.Result
 	Address int           `json:"address"`
-	Count   int           `json:"count"`
 	Values  []interface{} `json:"values"`
 }
 
