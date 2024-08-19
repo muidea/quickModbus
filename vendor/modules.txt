@@ -28,12 +28,13 @@ github.com/google/uuid
 ## explicit; go 1.18
 github.com/leodido/go-urn
 github.com/leodido/go-urn/scim/schema
-# github.com/muidea/magicCommon v1.3.104
+# github.com/muidea/magicCommon v1.3.105
 ## explicit; go 1.19
 github.com/muidea/magicCommon/application
 github.com/muidea/magicCommon/def
 github.com/muidea/magicCommon/event
 github.com/muidea/magicCommon/execute
+github.com/muidea/magicCommon/foundation/cache
 github.com/muidea/magicCommon/foundation/log
 github.com/muidea/magicCommon/foundation/signal
 github.com/muidea/magicCommon/foundation/util

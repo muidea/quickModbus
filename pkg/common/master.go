@@ -41,7 +41,8 @@ const (
 )
 
 type ConnectSlaveRequest struct {
-	SlaveAddr string
+	SlaveAddr string `json:"slaveAddr"`
+	DeviceID  int    `json:"deviceID"`
 }
 
 type ConnectSlaveResponse struct {
