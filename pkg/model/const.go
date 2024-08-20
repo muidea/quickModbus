@@ -256,3 +256,56 @@ func AppendUint32DCBA(byteVal []byte, uVal uint32) []byte {
 		byte(uVal>>16),
 		byte(uVal>>24))
 }
+
+func ByteToInt32ABCD(byteVal []byte) int32 {
+	_ = byteVal[3]
+	return int32(byteVal[3]) | int32(byteVal[2])<<8 | int32(byteVal[1])<<16 | int32(byteVal[0])<<24
+}
+
+func AppendInt32ABCD(byteVal []byte, iVal int32) []byte {
+	return append(byteVal,
+		byte(iVal>>24),
+		byte(iVal>>16),
+		byte(iVal>>8),
+		byte(iVal))
+}
+
+func ByteToInt32CDAB(byteVal []byte) int32 {
+	_ = byteVal[3]
+	return int32(byteVal[1]) | int32(byteVal[0])<<8 | int32(byteVal[3])<<16 | int32(byteVal[2])<<24
+}
+
+func AppendInt32CDAB(byteVal []byte, iVal int32) []byte {
+	return append(byteVal,
+		byte(iVal>>8),
+		byte(iVal),
+		byte(iVal>>24),
+		byte(iVal>>16),
+	)
+}
+
+func ByteToInt32BADC(byteVal []byte) int32 {
+	_ = byteVal[3]
+	return int32(byteVal[2]) | int32(byteVal[3])<<8 | int32(byteVal[0])<<16 | int32(byteVal[1])<<24
+}
+
+func AppendInt32BADC(byteVal []byte, iVal int32) []byte {
+	return append(byteVal,
+		byte(iVal>>16),
+		byte(iVal>>24),
+		byte(iVal),
+		byte(iVal>>8))
+}
+
+func ByteToInt32DCBA(byteVal []byte) int32 {
+	_ = byteVal[3]
+	return int32(byteVal[0]) | int32(byteVal[1])<<8 | int32(byteVal[2])<<16 | int32(byteVal[3])<<24
+}
+
+func AppendInt32DCBA(byteVal []byte, iVal int32) []byte {
+	return append(byteVal,
+		byte(iVal),
+		byte(iVal>>8),
+		byte(iVal>>16),
+		byte(iVal>>24))
+}

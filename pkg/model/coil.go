@@ -791,31 +791,6 @@ func (s *MBWriteMultipleCoilsRsp) Encode(writer io.Writer) (err byte) {
 	return
 }
 
-func (s *MBWriteMultipleCoilsRsp) EncodePayload(writer io.Writer) (err byte) {
-	defer func() {
-		if errInfo := recover(); errInfo != nil {
-			err = IllegalData
-		}
-	}()
-
-	if s.count > 0x7D0 || s.count < 0x001 {
-		err = IllegalCount
-		return
-	}
-
-	dataSize := 4
-	buffVal := make([]byte, 0)
-	buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
-	buffVal = binary.BigEndian.AppendUint16(buffVal, s.count)
-	wSize, wErr := writer.Write(buffVal)
-	if wErr != nil || wSize != dataSize {
-		err = IllegalAddress
-		return
-	}
-
-	return
-}
-
 func (s *MBWriteMultipleCoilsRsp) Decode(reader io.Reader) (err byte) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
@@ -848,6 +823,35 @@ func (s *MBWriteMultipleCoilsRsp) Decode(reader io.Reader) (err byte) {
 	return
 }
 
+func (s *MBWriteMultipleCoilsRsp) CalcLen() uint16 {
+	return 5
+}
+
+func (s *MBWriteMultipleCoilsRsp) EncodePayload(writer io.Writer) (err byte) {
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = IllegalData
+		}
+	}()
+
+	if s.count > 0x7D0 || s.count < 0x001 {
+		err = IllegalCount
+		return
+	}
+
+	dataSize := 4
+	buffVal := make([]byte, 0)
+	buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
+	buffVal = binary.BigEndian.AppendUint16(buffVal, s.count)
+	wSize, wErr := writer.Write(buffVal)
+	if wErr != nil || wSize != dataSize {
+		err = IllegalAddress
+		return
+	}
+
+	return
+}
+
 func (s *MBWriteMultipleCoilsRsp) DecodePayload(reader io.Reader) (err byte) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
@@ -873,6 +877,10 @@ func (s *MBWriteMultipleCoilsRsp) DecodePayload(reader io.Reader) (err byte) {
 	s.address = binary.BigEndian.Uint16(dataVal[0:2])
 	s.count = binary.BigEndian.Uint16(dataVal[2:4])
 	return
+}
+
+func (s *MBWriteMultipleCoilsRsp) CalcPayloadLen() uint16 {
+	return 4
 }
 
 func (s *MBWriteMultipleCoilsRsp) Address() uint16 {

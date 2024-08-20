@@ -3,7 +3,7 @@ module github.com/muidea/quickModbus
 go 1.21.8
 
 require (
-	github.com/muidea/magicCommon v1.3.105
+	github.com/muidea/magicCommon v1.3.106
 	github.com/muidea/magicEngine v1.3.6
 )
 

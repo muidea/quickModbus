@@ -18,6 +18,15 @@ const (
 )
 
 const (
+	ABEndian   = 0
+	BAEndian   = 1
+	ABCDEndian = 2
+	CDABEndian = 3
+	BADCEndian = 4
+	DCBAEndian = 5
+)
+
+const (
 	ConnectSlave               = "/slave/connect"
 	DisConnectSlave            = "/slave/:id/disconnect"
 	ReadCoils                  = "/slave/:id/coils/read"
@@ -42,7 +51,7 @@ const (
 
 type ConnectSlaveRequest struct {
 	SlaveAddr string `json:"slaveAddr"`
-	DeviceID  int    `json:"deviceID"`
+	DeviceID  byte   `json:"deviceID"`
 }
 
 type ConnectSlaveResponse struct {
@@ -51,72 +60,67 @@ type ConnectSlaveResponse struct {
 }
 
 type ReadCoilsRequest struct {
-	Address int `json:"address"`
-	Count   int `json:"count"`
+	Address uint16 `json:"address"`
+	Count   uint16 `json:"count"`
 }
 
 type ReadCoilsResponse struct {
 	cd.Result
-	Address int    `json:"address"`
-	Values  []bool `json:"values"`
+	Values []bool `json:"values"`
 }
 
 type ReadDiscreteInputsRequest struct {
-	Address int `json:"address"`
-	Count   int `json:"count"`
+	Address uint16 `json:"address"`
+	Count   uint16 `json:"count"`
 }
 
 type ReadDiscreteInputsResponse struct {
 	cd.Result
-	Address int    `json:"address"`
-	Values  []bool `json:"values"`
+	Values []bool `json:"values"`
 }
 
 type ReadHoldingRegistersRequest struct {
-	Address   int `json:"address"`
-	Count     int `json:"count"`
-	ValueType int `json:"valueType"`
+	Address    uint16 `json:"address"`
+	Count      uint16 `json:"count"`
+	ValueType  uint16 `json:"valueType"`
+	EndianType uint16 `json:"endianType"`
 }
 
 type ReadHoldingRegistersResponse struct {
 	cd.Result
-	Address int           `json:"address"`
-	Values  []interface{} `json:"values"`
+	Values []interface{} `json:"values"`
 }
 
 type ReadReadInputRegistersRequest struct {
-	Address   int `json:"address"`
-	Count     int `json:"count"`
-	ValueType int `json:"valueType"`
+	Address    uint16 `json:"address"`
+	Count      uint16 `json:"count"`
+	ValueType  uint16 `json:"valueType"`
+	EndianType uint16 `json:"endianType"`
 }
 
 type ReadReadInputRegistersResponse struct {
 	cd.Result
-	Address int           `json:"address"`
-	Values  []interface{} `json:"values"`
+	Values []interface{} `json:"values"`
 }
 
 type WriteSingleCoilRequest struct {
-	Address int  `json:"address"`
-	Value   bool `json:"value"`
+	Address uint16 `json:"address"`
+	Value   bool   `json:"value"`
 }
 
 type WriteSingleCoilResponse struct {
 	cd.Result
-	Address int  `json:"address"`
-	Value   bool `json:"value"`
 }
 
 type WriteSingleRegisterRequest struct {
-	Address   int         `json:"address"`
-	Value     interface{} `json:"value"`
-	ValueType int         `json:"valueType"`
+	Address    uint16      `json:"address"`
+	Value      interface{} `json:"value"`
+	ValueType  uint16      `json:"valueType"`
+	EndianType uint16      `json:"endianType"`
 }
 
 type WriteSingleRegisterResponse struct {
 	cd.Result
-	Value     interface{} `json:"value"`
-	ValueType int         `json:"valueType"`
 }
 
 type ReadExceptionStatusRequest struct {
@@ -128,13 +132,13 @@ type ReadExceptionStatusResponse struct {
 }
 
 type DiagnosticsRequest struct {
-	Function int    `json:"function"`
+	Function uint16 `json:"function"`
 	Value    string `json:"value"`
 }
 
 type DiagnosticsResponse struct {
 	cd.Result
-	Function int    `json:"function"`
+	Function uint16 `json:"function"`
 	Value    string `json:"value"`
 }
 
@@ -143,8 +147,8 @@ type GetCommEventCounterRequest struct {
 
 type GetCommEventCounterResponse struct {
 	cd.Result
-	CommStatus int `json:"commStatus"`
-	EventCount int `json:"eventCount"`
+	CommStatus uint16 `json:"commStatus"`
+	EventCount uint16 `json:"eventCount"`
 }
 
 type GetCommEventLogRequest struct {
