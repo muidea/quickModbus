@@ -1,6 +1,9 @@
 package model
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 const (
 	aduTcpHeadLength    = 7
@@ -308,4 +311,65 @@ func AppendInt32DCBA(byteVal []byte, iVal int32) []byte {
 		byte(iVal>>8),
 		byte(iVal>>16),
 		byte(iVal>>24))
+}
+
+func ByteToFloatABCD(byteVal []byte) float32 {
+	_ = byteVal[3]
+	u32Val := uint32(byteVal[3]) | uint32(byteVal[2])<<8 | uint32(byteVal[1])<<16 | uint32(byteVal[0])<<24
+	return math.Float32frombits(u32Val)
+}
+
+func AppendFloatABCD(byteVal []byte, f32Val float32) []byte {
+	u32Val := math.Float32bits(f32Val)
+	return append(byteVal,
+		byte(u32Val>>24),
+		byte(u32Val>>16),
+		byte(u32Val>>8),
+		byte(u32Val))
+}
+
+func ByteToFloatCDAB(byteVal []byte) float32 {
+	_ = byteVal[3]
+	u32Val := uint32(byteVal[1]) | uint32(byteVal[0])<<8 | uint32(byteVal[3])<<16 | uint32(byteVal[2])<<24
+	return math.Float32frombits(u32Val)
+}
+
+func AppendFloatCDAB(byteVal []byte, f32Val float32) []byte {
+	u32Val := math.Float32bits(f32Val)
+	return append(byteVal,
+		byte(u32Val>>8),
+		byte(u32Val),
+		byte(u32Val>>24),
+		byte(u32Val>>16),
+	)
+}
+
+func ByteToFloatBADC(byteVal []byte) float32 {
+	_ = byteVal[3]
+	u32Val := uint32(byteVal[2]) | uint32(byteVal[3])<<8 | uint32(byteVal[0])<<16 | uint32(byteVal[1])<<24
+	return math.Float32frombits(u32Val)
+}
+
+func AppendFloatBADC(byteVal []byte, f32Val float32) []byte {
+	u32Val := math.Float32bits(f32Val)
+	return append(byteVal,
+		byte(u32Val>>16),
+		byte(u32Val>>24),
+		byte(u32Val),
+		byte(u32Val>>8))
+}
+
+func ByteToFloatDCBA(byteVal []byte) float32 {
+	_ = byteVal[3]
+	u32Val := uint32(byteVal[0]) | uint32(byteVal[1])<<8 | uint32(byteVal[2])<<16 | uint32(byteVal[3])<<24
+	return math.Float32frombits(u32Val)
+}
+
+func AppendFloatDCBA(byteVal []byte, f32Val float32) []byte {
+	u32Val := math.Float32bits(f32Val)
+	return append(byteVal,
+		byte(u32Val),
+		byte(u32Val>>8),
+		byte(u32Val>>16),
+		byte(u32Val>>24))
 }
