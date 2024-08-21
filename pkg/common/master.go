@@ -17,13 +17,17 @@ const (
 	DoubleValue = 9
 )
 
+/*
+ABCD 0 Big-endian 按照顺序排序
+BADC 1 Big-endian byte swap 按照单字反转
+CDAB 2 Little-endian byte swap 按照双字反转
+DCBA 3 Little-endian 按照倒序排序
+*/
 const (
-	ABEndian   = 0
-	BAEndian   = 1
-	ABCDEndian = 2
-	CDABEndian = 3
-	BADCEndian = 4
-	DCBAEndian = 5
+	ABCDEndian = 0
+	BADCEndian = 1
+	CDABEndian = 2
+	DCBAEndian = 3
 )
 
 const (
@@ -60,8 +64,9 @@ type ConnectSlaveResponse struct {
 }
 
 type ReadCoilsRequest struct {
-	Address uint16 `json:"address"`
-	Count   uint16 `json:"count"`
+	Address    uint16 `json:"address"`
+	Count      uint16 `json:"count"`
+	EndianType uint16 `json:"endianType"`
 }
 
 type ReadCoilsResponse struct {
@@ -70,8 +75,9 @@ type ReadCoilsResponse struct {
 }
 
 type ReadDiscreteInputsRequest struct {
-	Address uint16 `json:"address"`
-	Count   uint16 `json:"count"`
+	Address    uint16 `json:"address"`
+	Count      uint16 `json:"count"`
+	EndianType uint16 `json:"endianType"`
 }
 
 type ReadDiscreteInputsResponse struct {

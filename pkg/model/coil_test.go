@@ -196,7 +196,7 @@ func TestDecodeMB001(t *testing.T) {
 	// 0,6,7,8,9 = true
 	// other = false
 	trueSet := []int{0, 6, 7, 8, 9}
-	boolArray := ByteArrayToBoolArray(rspPtr.Data())
+	boolArray := ByteArrayToBoolArrayDCBA(rspPtr.Data())
 	for idx := range boolArray {
 		findFlag := false
 		for _, val := range trueSet {
@@ -279,7 +279,7 @@ func TestDecodeMB002(t *testing.T) {
 	// 0,1,2,6,11,12 = true
 	// other = false
 	trueSet := []int{0, 1, 2, 6, 11, 12}
-	boolArray := ByteArrayToBoolArray(rspPtr.Data())
+	boolArray := ByteArrayToBoolArrayDCBA(rspPtr.Data())
 	for idx := range boolArray {
 		findFlag := false
 		for _, val := range trueSet {
@@ -416,7 +416,7 @@ func TestDecodeMB011(t *testing.T) {
 	}
 
 	valSet := []bool{true, false, true, false, true, true, true, false, false, false}
-	boolArray := ByteArrayToBoolArray(reqPtr.Data())
+	boolArray := ByteArrayToBoolArrayDCBA(reqPtr.Data())
 	idx := uint16(0)
 	for ; idx < reqPtr.Count(); idx++ {
 		if valSet[idx] != boolArray[idx] {

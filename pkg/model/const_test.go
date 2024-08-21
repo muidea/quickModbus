@@ -9,64 +9,64 @@ func TestByteToBoolArray(t *testing.T) {
 	b21Val := byte(0x15)
 
 	boolSlice := []bool{true, false, true, false, true, false, false, false}
-	boolArray := ByteToBoolArrayForBigEndian(b21Val)
+	boolArray := ByteToBoolArrayDCBA(b21Val)
 	t.Logf("expect:%v", boolSlice)
 	t.Logf("really:%v", boolArray)
 	for idx := 0; idx < len(boolSlice); idx++ {
 		if boolSlice[idx] != boolArray[idx] {
-			t.Error("ByteToBoolArrayForBigEndian failed")
+			t.Error("ByteToBoolArrayDCBA failed")
 			return
 		}
 	}
 
-	newB21Val := BoolArrayToByteForBigEndian(boolSlice)
+	newB21Val := BoolArrayToByteABCD(boolSlice)
 	if b21Val != newB21Val {
 		return
 	}
 
 	boolSlice = []bool{false, false, false, false, false, false, false, true, false, false, false, true, false, true, false, true}
-	boolArray = ByteArrayToBoolArray([]byte{b01Val, b21Val})
+	boolArray = ByteArrayToBoolArrayDCBA([]byte{b01Val, b21Val})
 	t.Logf("expect:%v", boolSlice)
 	t.Logf("really:%v", boolArray)
 	for idx := 0; idx < len(boolSlice); idx++ {
 		if boolSlice[idx] != boolArray[idx] {
-			t.Error("ByteToBoolArrayForBigEndian failed")
+			t.Error("ByteToBoolArrayDCBA failed")
 			return
 		}
 	}
 
-	byteArray := BoolArrayToByteArray(boolArray)
+	byteArray := BoolArrayToByteArrayABCD(boolArray)
 	if len(byteArray) != 2 {
-		t.Errorf("BoolArrayToByteArray failed")
+		t.Errorf("BoolArrayToByteArrayABCD failed")
 		return
 	}
 	if byteArray[0] != b01Val || byteArray[1] != b21Val {
-		t.Errorf("BoolArrayToByteArray failed, missmatch byte value")
+		t.Errorf("BoolArrayToByteArrayABCD failed, missmatch byte value")
 		return
 	}
 
 	boolSlice = []bool{true, false, true, false, true, false, false, false}
-	boolArray = ByteToBoolArrayForLittleEndian(b21Val)
+	boolArray = ByteToBoolArrayABCD(b21Val)
 	t.Logf("expect:%v", boolSlice)
 	t.Logf("really:%v", boolArray)
 	for idx := 0; idx < len(boolSlice); idx++ {
 		if boolSlice[idx] != boolArray[idx] {
-			t.Error("ByteToBoolArrayForBigEndian failed")
+			t.Error("ByteToBoolArrayDCBA failed")
 			return
 		}
 	}
-	newB21Val = BoolArrayToByteForLittleEndian(boolSlice)
+	newB21Val = BoolArrayToByteDCBA(boolSlice)
 	if b21Val != newB21Val {
 		return
 	}
 
 	boolSlice = []bool{true, false, true, false, true, false, false, false, true, false, false, false, false, false, false, false}
-	boolArray = ByteArrayToBoolArrayForLittleEndian([]byte{b21Val, b01Val})
+	boolArray = ByteArrayToBoolArrayABCD([]byte{b21Val, b01Val})
 	t.Logf("expect:%v", boolSlice)
 	t.Logf("really:%v", boolArray)
 	for idx := 0; idx < len(boolSlice); idx++ {
 		if boolSlice[idx] != boolArray[idx] {
-			t.Error("ByteToBoolArrayForBigEndian failed")
+			t.Error("ByteToBoolArrayDCBA failed")
 			return
 		}
 	}
@@ -78,19 +78,19 @@ func TestUint16(t *testing.T) {
 
 	byteVal := []byte{}
 
-	byteVal = AppendUint16AB(byteVal, uVal1)
-	nVal1 := ByteToUint16AB(byteVal[:])
+	byteVal = AppendUint16ABCD(byteVal, uVal1)
+	nVal1 := ByteToUint16ABCD(byteVal[:])
 	if nVal1 != uVal1 {
 		t.Error("Encode byte failed")
 		return
 	}
-	byteVal = AppendUint16AB(byteVal, uVal2)
-	nVal1 = ByteToUint16AB(byteVal[:2])
+	byteVal = AppendUint16ABCD(byteVal, uVal2)
+	nVal1 = ByteToUint16ABCD(byteVal[:2])
 	if nVal1 != uVal1 {
 		t.Error("Encode byte failed")
 		return
 	}
-	nVal2 := ByteToUint16AB(byteVal[2:])
+	nVal2 := ByteToUint16ABCD(byteVal[2:])
 	if nVal2 != uVal2 {
 		t.Error("Encode byte failed")
 		return

@@ -56,7 +56,7 @@ func (s *Master) DisConnectSlave(slaveID string) (err *cd.Result) {
 	return
 }
 
-func (s *Master) ReadCoils(slaveID string, address, count uint16) (ret []bool, err *cd.Result) {
+func (s *Master) ReadCoils(slaveID string, address, count, endianType uint16) (ret []bool, err *cd.Result) {
 	vVal := s.slaveInfoCache.Fetch(slaveID)
 	if vVal == nil {
 		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
@@ -72,11 +72,21 @@ func (s *Master) ReadCoils(slaveID string, address, count uint16) (ret []bool, e
 		return
 	}
 
-	ret = model.ByteArrayToBoolArray(readVal)
+	if endianType == common.ABCDEndian {
+		ret = model.ByteArrayToBoolArrayABCD(readVal)
+		return
+	}
+	if endianType == common.DCBAEndian {
+		ret = model.ByteArrayToBoolArrayDCBA(readVal)
+		return
+	}
+
+	errMsg := fmt.Sprintf("illegal endian type, endianTYpe:%v", endianType)
+	err = cd.NewError(cd.UnExpected, errMsg)
 	return
 }
 
-func (s *Master) ReadDiscreteInputs(slaveID string, address, count uint16) (ret []bool, err *cd.Result) {
+func (s *Master) ReadDiscreteInputs(slaveID string, address, count, endianType uint16) (ret []bool, err *cd.Result) {
 	vVal := s.slaveInfoCache.Fetch(slaveID)
 	if vVal == nil {
 		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
@@ -92,7 +102,17 @@ func (s *Master) ReadDiscreteInputs(slaveID string, address, count uint16) (ret 
 		return
 	}
 
-	ret = model.ByteArrayToBoolArray(readVal)
+	if endianType == common.ABCDEndian {
+		ret = model.ByteArrayToBoolArrayABCD(readVal)
+		return
+	}
+	if endianType == common.DCBAEndian {
+		ret = model.ByteArrayToBoolArrayDCBA(readVal)
+		return
+	}
+
+	errMsg := fmt.Sprintf("illegal endian type, endianTYpe:%v", endianType)
+	err = cd.NewError(cd.UnExpected, errMsg)
 	return
 }
 

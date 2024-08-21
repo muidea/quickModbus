@@ -72,7 +72,7 @@ func TestDecodeMB005(t *testing.T) {
 		return
 	}
 
-	u16Array, u16Err := ByteArrayToUint16ABArray(rspPtr.Data())
+	u16Array, u16Err := ByteArrayToUint16ABCDArray(rspPtr.Data())
 	if u16Err != nil {
 		t.Errorf("decode ReadHoldingRegisters response, error:%s", u16Err.Error())
 		return

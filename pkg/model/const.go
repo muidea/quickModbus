@@ -57,25 +57,25 @@ const (
 	IllegalData     = 0x04
 )
 
-func ByteArrayToBoolArray(byteVal []byte) []bool {
+func ByteArrayToBoolArrayDCBA(byteVal []byte) []bool {
 	ret := []bool{}
 	for _, val := range byteVal {
-		ret = append(ret, ByteToBoolArrayForBigEndian(val)...)
+		ret = append(ret, ByteToBoolArrayDCBA(val)...)
 	}
 
 	return ret
 }
 
-func ByteArrayToBoolArrayForLittleEndian(byteVal []byte) []bool {
+func ByteArrayToBoolArrayABCD(byteVal []byte) []bool {
 	ret := []bool{}
 	for _, val := range byteVal {
-		ret = append(ret, ByteToBoolArrayForLittleEndian(val)...)
+		ret = append(ret, ByteToBoolArrayABCD(val)...)
 	}
 
 	return ret
 }
 
-func ByteToBoolArrayForLittleEndian(byteVal byte) []bool {
+func ByteToBoolArrayABCD(byteVal byte) []bool {
 	boolArray := make([]bool, 8)
 
 	for i := 7; i >= 0; i-- {
@@ -86,7 +86,7 @@ func ByteToBoolArrayForLittleEndian(byteVal byte) []bool {
 	return boolArray
 }
 
-func ByteToBoolArrayForBigEndian(byteVal byte) []bool {
+func ByteToBoolArrayDCBA(byteVal byte) []bool {
 	boolArray := make([]bool, 8)
 
 	for i := 0; i <= 7; i++ {
@@ -97,7 +97,7 @@ func ByteToBoolArrayForBigEndian(byteVal byte) []bool {
 	return boolArray
 }
 
-func BoolArrayToByteArray(boolVal []bool) []byte {
+func BoolArrayToByteArrayABCD(boolVal []bool) []byte {
 	ret := []byte{}
 	idx := 0
 	for {
@@ -106,7 +106,7 @@ func BoolArrayToByteArray(boolVal []bool) []byte {
 		}
 
 		subArray := boolVal[idx:]
-		byteVal := BoolArrayToByteForBigEndian(subArray)
+		byteVal := BoolArrayToByteABCD(subArray)
 		ret = append(ret, byteVal)
 		idx += 9
 	}
@@ -114,7 +114,7 @@ func BoolArrayToByteArray(boolVal []bool) []byte {
 	return ret
 }
 
-func BoolArrayToByteArrayForLittleEndian(boolVal []bool) []byte {
+func BoolArrayToByteArrayDCBA(boolVal []bool) []byte {
 	ret := []byte{}
 	idx := 0
 	for {
@@ -123,7 +123,7 @@ func BoolArrayToByteArrayForLittleEndian(boolVal []bool) []byte {
 		}
 
 		subArray := boolVal[idx:]
-		byteVal := BoolArrayToByteForLittleEndian(subArray)
+		byteVal := BoolArrayToByteDCBA(subArray)
 		ret = append(ret, byteVal)
 		idx += 9
 	}
@@ -131,7 +131,7 @@ func BoolArrayToByteArrayForLittleEndian(boolVal []bool) []byte {
 	return ret
 }
 
-func BoolArrayToByteForLittleEndian(boolArray []bool) byte {
+func BoolArrayToByteDCBA(boolArray []bool) byte {
 	if len(boolArray) < 8 {
 		// 在boolArray前面补充false，使其长度达到8
 		padding := make([]bool, 8-len(boolArray))
@@ -150,7 +150,7 @@ func BoolArrayToByteForLittleEndian(boolArray []bool) byte {
 	return byteVal
 }
 
-func BoolArrayToByteForBigEndian(boolArray []bool) byte {
+func BoolArrayToByteABCD(boolArray []bool) byte {
 	if len(boolArray) < 8 {
 		// 在boolArray前面补充false，使其长度达到8
 		padding := make([]bool, 8-len(boolArray))
@@ -169,12 +169,12 @@ func BoolArrayToByteForBigEndian(boolArray []bool) byte {
 	return byteVal
 }
 
-func ByteArrayToUint16ABArray(byteVal []byte) ([]uint16, error) {
+func ByteArrayToUint16ABCDArray(byteVal []byte) ([]uint16, error) {
 	uint16Array := []uint16{}
 	idx := 0
 	totalCount := len(byteVal)
 	for idx < totalCount {
-		u16 := ByteToUint16AB(byteVal[idx : idx+2])
+		u16 := ByteToUint16ABCD(byteVal[idx : idx+2])
 		uint16Array = append(uint16Array, u16)
 		idx += 2
 	}
@@ -185,31 +185,37 @@ func ByteArrayToUint16ABArray(byteVal []byte) ([]uint16, error) {
 	return uint16Array, nil
 }
 
-func ByteToUint16AB(byteVal []byte) uint16 {
+func ByteToUint16ABCD(byteVal []byte) uint16 {
 	_ = byteVal[1]
-	return uint16(byteVal[1]) | uint16(byteVal[0])<<8
+	return uint16(byteVal[1]) |
+		uint16(byteVal[0])<<8
 }
 
-func AppendUint16AB(byteVal []byte, uVal uint16) []byte {
+func AppendUint16ABCD(byteVal []byte, uVal uint16) []byte {
 	return append(byteVal,
 		byte(uVal>>8),
 		byte(uVal))
 }
 
-func ByteToUint16BA(byteVal []byte) uint16 {
+func ByteToUint16BADC(byteVal []byte) uint16 {
 	_ = byteVal[1]
-	return uint16(byteVal[0]) | uint16(byteVal[1])<<8
+	return uint16(byteVal[0]) |
+		uint16(byteVal[1])<<8
 }
 
-func AppendUint16BA(byteVal []byte, uVal uint16) []byte {
+func AppendUint16BADC(byteVal []byte, uVal uint16) []byte {
 	return append(byteVal,
 		byte(uVal),
-		byte(uVal>>8))
+		byte(uVal>>8),
+	)
 }
 
 func ByteToUint32ABCD(byteVal []byte) uint32 {
 	_ = byteVal[3]
-	return uint32(byteVal[3]) | uint32(byteVal[2])<<8 | uint32(byteVal[1])<<16 | uint32(byteVal[0])<<24
+	return uint32(byteVal[3]) |
+		uint32(byteVal[2])<<8 |
+		uint32(byteVal[1])<<16 |
+		uint32(byteVal[0])<<24
 }
 
 func AppendUint32ABCD(byteVal []byte, uVal uint32) []byte {
@@ -217,12 +223,33 @@ func AppendUint32ABCD(byteVal []byte, uVal uint32) []byte {
 		byte(uVal>>24),
 		byte(uVal>>16),
 		byte(uVal>>8),
-		byte(uVal))
+		byte(uVal),
+	)
+}
+
+func ByteToUint32BADC(byteVal []byte) uint32 {
+	_ = byteVal[3]
+	return uint32(byteVal[2]) |
+		uint32(byteVal[3])<<8 |
+		uint32(byteVal[0])<<16 |
+		uint32(byteVal[1])<<24
+}
+
+func AppendUint32BADC(byteVal []byte, uVal uint32) []byte {
+	return append(byteVal,
+		byte(uVal>>16),
+		byte(uVal>>24),
+		byte(uVal),
+		byte(uVal>>8),
+	)
 }
 
 func ByteToUint32CDAB(byteVal []byte) uint32 {
 	_ = byteVal[3]
-	return uint32(byteVal[1]) | uint32(byteVal[0])<<8 | uint32(byteVal[3])<<16 | uint32(byteVal[2])<<24
+	return uint32(byteVal[1]) |
+		uint32(byteVal[0])<<8 |
+		uint32(byteVal[3])<<16 |
+		uint32(byteVal[2])<<24
 }
 
 func AppendUint32CDAB(byteVal []byte, uVal uint32) []byte {
@@ -234,22 +261,12 @@ func AppendUint32CDAB(byteVal []byte, uVal uint32) []byte {
 	)
 }
 
-func ByteToUint32BADC(byteVal []byte) uint32 {
-	_ = byteVal[3]
-	return uint32(byteVal[2]) | uint32(byteVal[3])<<8 | uint32(byteVal[0])<<16 | uint32(byteVal[1])<<24
-}
-
-func AppendUint32BADC(byteVal []byte, uVal uint32) []byte {
-	return append(byteVal,
-		byte(uVal>>16),
-		byte(uVal>>24),
-		byte(uVal),
-		byte(uVal>>8))
-}
-
 func ByteToUint32DCBA(byteVal []byte) uint32 {
 	_ = byteVal[3]
-	return uint32(byteVal[0]) | uint32(byteVal[1])<<8 | uint32(byteVal[2])<<16 | uint32(byteVal[3])<<24
+	return uint32(byteVal[0]) |
+		uint32(byteVal[1])<<8 |
+		uint32(byteVal[2])<<16 |
+		uint32(byteVal[3])<<24
 }
 
 func AppendUint32DCBA(byteVal []byte, uVal uint32) []byte {
@@ -257,12 +274,16 @@ func AppendUint32DCBA(byteVal []byte, uVal uint32) []byte {
 		byte(uVal),
 		byte(uVal>>8),
 		byte(uVal>>16),
-		byte(uVal>>24))
+		byte(uVal>>24),
+	)
 }
 
 func ByteToInt32ABCD(byteVal []byte) int32 {
 	_ = byteVal[3]
-	return int32(byteVal[3]) | int32(byteVal[2])<<8 | int32(byteVal[1])<<16 | int32(byteVal[0])<<24
+	return int32(byteVal[3]) |
+		int32(byteVal[2])<<8 |
+		int32(byteVal[1])<<16 |
+		int32(byteVal[0])<<24
 }
 
 func AppendInt32ABCD(byteVal []byte, iVal int32) []byte {
@@ -270,12 +291,33 @@ func AppendInt32ABCD(byteVal []byte, iVal int32) []byte {
 		byte(iVal>>24),
 		byte(iVal>>16),
 		byte(iVal>>8),
-		byte(iVal))
+		byte(iVal),
+	)
+}
+
+func ByteToInt32BADC(byteVal []byte) int32 {
+	_ = byteVal[3]
+	return int32(byteVal[2]) |
+		int32(byteVal[3])<<8 |
+		int32(byteVal[0])<<16 |
+		int32(byteVal[1])<<24
+}
+
+func AppendInt32BADC(byteVal []byte, iVal int32) []byte {
+	return append(byteVal,
+		byte(iVal>>16),
+		byte(iVal>>24),
+		byte(iVal),
+		byte(iVal>>8),
+	)
 }
 
 func ByteToInt32CDAB(byteVal []byte) int32 {
 	_ = byteVal[3]
-	return int32(byteVal[1]) | int32(byteVal[0])<<8 | int32(byteVal[3])<<16 | int32(byteVal[2])<<24
+	return int32(byteVal[1]) |
+		int32(byteVal[0])<<8 |
+		int32(byteVal[3])<<16 |
+		int32(byteVal[2])<<24
 }
 
 func AppendInt32CDAB(byteVal []byte, iVal int32) []byte {
@@ -287,22 +329,12 @@ func AppendInt32CDAB(byteVal []byte, iVal int32) []byte {
 	)
 }
 
-func ByteToInt32BADC(byteVal []byte) int32 {
-	_ = byteVal[3]
-	return int32(byteVal[2]) | int32(byteVal[3])<<8 | int32(byteVal[0])<<16 | int32(byteVal[1])<<24
-}
-
-func AppendInt32BADC(byteVal []byte, iVal int32) []byte {
-	return append(byteVal,
-		byte(iVal>>16),
-		byte(iVal>>24),
-		byte(iVal),
-		byte(iVal>>8))
-}
-
 func ByteToInt32DCBA(byteVal []byte) int32 {
 	_ = byteVal[3]
-	return int32(byteVal[0]) | int32(byteVal[1])<<8 | int32(byteVal[2])<<16 | int32(byteVal[3])<<24
+	return int32(byteVal[0]) |
+		int32(byteVal[1])<<8 |
+		int32(byteVal[2])<<16 |
+		int32(byteVal[3])<<24
 }
 
 func AppendInt32DCBA(byteVal []byte, iVal int32) []byte {
@@ -310,12 +342,16 @@ func AppendInt32DCBA(byteVal []byte, iVal int32) []byte {
 		byte(iVal),
 		byte(iVal>>8),
 		byte(iVal>>16),
-		byte(iVal>>24))
+		byte(iVal>>24),
+	)
 }
 
 func ByteToFloatABCD(byteVal []byte) float32 {
 	_ = byteVal[3]
-	u32Val := uint32(byteVal[3]) | uint32(byteVal[2])<<8 | uint32(byteVal[1])<<16 | uint32(byteVal[0])<<24
+	u32Val := uint32(byteVal[3]) |
+		uint32(byteVal[2])<<8 |
+		uint32(byteVal[1])<<16 |
+		uint32(byteVal[0])<<24
 	return math.Float32frombits(u32Val)
 }
 
@@ -325,12 +361,35 @@ func AppendFloatABCD(byteVal []byte, f32Val float32) []byte {
 		byte(u32Val>>24),
 		byte(u32Val>>16),
 		byte(u32Val>>8),
-		byte(u32Val))
+		byte(u32Val),
+	)
+}
+
+func ByteToFloatBADC(byteVal []byte) float32 {
+	_ = byteVal[3]
+	u32Val := uint32(byteVal[2]) |
+		uint32(byteVal[3])<<8 |
+		uint32(byteVal[0])<<16 |
+		uint32(byteVal[1])<<24
+	return math.Float32frombits(u32Val)
+}
+
+func AppendFloatBADC(byteVal []byte, f32Val float32) []byte {
+	u32Val := math.Float32bits(f32Val)
+	return append(byteVal,
+		byte(u32Val>>16),
+		byte(u32Val>>24),
+		byte(u32Val),
+		byte(u32Val>>8),
+	)
 }
 
 func ByteToFloatCDAB(byteVal []byte) float32 {
 	_ = byteVal[3]
-	u32Val := uint32(byteVal[1]) | uint32(byteVal[0])<<8 | uint32(byteVal[3])<<16 | uint32(byteVal[2])<<24
+	u32Val := uint32(byteVal[1]) |
+		uint32(byteVal[0])<<8 |
+		uint32(byteVal[3])<<16 |
+		uint32(byteVal[2])<<24
 	return math.Float32frombits(u32Val)
 }
 
@@ -344,24 +403,12 @@ func AppendFloatCDAB(byteVal []byte, f32Val float32) []byte {
 	)
 }
 
-func ByteToFloatBADC(byteVal []byte) float32 {
-	_ = byteVal[3]
-	u32Val := uint32(byteVal[2]) | uint32(byteVal[3])<<8 | uint32(byteVal[0])<<16 | uint32(byteVal[1])<<24
-	return math.Float32frombits(u32Val)
-}
-
-func AppendFloatBADC(byteVal []byte, f32Val float32) []byte {
-	u32Val := math.Float32bits(f32Val)
-	return append(byteVal,
-		byte(u32Val>>16),
-		byte(u32Val>>24),
-		byte(u32Val),
-		byte(u32Val>>8))
-}
-
 func ByteToFloatDCBA(byteVal []byte) float32 {
 	_ = byteVal[3]
-	u32Val := uint32(byteVal[0]) | uint32(byteVal[1])<<8 | uint32(byteVal[2])<<16 | uint32(byteVal[3])<<24
+	u32Val := uint32(byteVal[0]) |
+		uint32(byteVal[1])<<8 |
+		uint32(byteVal[2])<<16 |
+		uint32(byteVal[3])<<24
 	return math.Float32frombits(u32Val)
 }
 
@@ -372,4 +419,110 @@ func AppendFloatDCBA(byteVal []byte, f32Val float32) []byte {
 		byte(u32Val>>8),
 		byte(u32Val>>16),
 		byte(u32Val>>24))
+}
+
+func ByteToDoubleABCD(byteVal []byte) float64 {
+	_ = byteVal[7]
+	u64Val := uint64(byteVal[7]) |
+		uint64(byteVal[6])<<8 |
+		uint64(byteVal[5])<<16 |
+		uint64(byteVal[4])<<24 |
+		uint64(byteVal[3])<<32 |
+		uint64(byteVal[2])<<40 |
+		uint64(byteVal[1])<<48 |
+		uint64(byteVal[0])<<56
+	return math.Float64frombits(u64Val)
+}
+
+func AppendDoubleABCD(byteVal []byte, f64Val float64) []byte {
+	u64Val := math.Float64bits(f64Val)
+	return append(byteVal,
+		byte(u64Val>>56),
+		byte(u64Val>>48),
+		byte(u64Val>>40),
+		byte(u64Val>>32),
+		byte(u64Val>>24),
+		byte(u64Val>>16),
+		byte(u64Val>>8),
+		byte(u64Val))
+}
+
+func ByteToDoubleBADC(byteVal []byte) float64 {
+	_ = byteVal[7]
+	u64Val := uint64(byteVal[6]) |
+		uint64(byteVal[7])<<8 |
+		uint64(byteVal[4])<<16 |
+		uint64(byteVal[5])<<24 |
+		uint64(byteVal[2])<<32 |
+		uint64(byteVal[3])<<40 |
+		uint64(byteVal[0])<<48 |
+		uint64(byteVal[1])<<56
+	return math.Float64frombits(u64Val)
+}
+
+func AppendDoubleBADC(byteVal []byte, f64Val float64) []byte {
+	u64Val := math.Float64bits(f64Val)
+	return append(byteVal,
+		byte(u64Val>>48),
+		byte(u64Val>>56),
+		byte(u64Val>>32),
+		byte(u64Val>>40),
+		byte(u64Val>>16),
+		byte(u64Val>>24),
+		byte(u64Val),
+		byte(u64Val>>8))
+}
+
+func ByteToDoubleCDAB(byteVal []byte) float64 {
+	_ = byteVal[7]
+	u64Val := uint64(byteVal[5])<<16 |
+		uint64(byteVal[4])<<24 |
+		uint64(byteVal[7]) |
+		uint64(byteVal[6])<<8 |
+		uint64(byteVal[1])<<48 |
+		uint64(byteVal[0])<<56 |
+		uint64(byteVal[3])<<32 |
+		uint64(byteVal[2])<<40
+	return math.Float64frombits(u64Val)
+}
+
+func AppendDoubleCDAB(byteVal []byte, f64Val float64) []byte {
+	u64Val := math.Float64bits(f64Val)
+	return append(byteVal,
+		byte(u64Val>>40),
+		byte(u64Val>>32),
+		byte(u64Val>>56),
+		byte(u64Val>>48),
+		byte(u64Val>>8),
+		byte(u64Val),
+		byte(u64Val>>24),
+		byte(u64Val>>16),
+	)
+}
+
+func ByteToDoubleDCBA(byteVal []byte) float64 {
+	_ = byteVal[7]
+	u64Val := uint64(byteVal[0]) |
+		uint64(byteVal[1])<<8 |
+		uint64(byteVal[2])<<16 |
+		uint64(byteVal[3])<<24 |
+		uint64(byteVal[4])<<32 |
+		uint64(byteVal[5])<<40 |
+		uint64(byteVal[6])<<48 |
+		uint64(byteVal[7])<<56
+	return math.Float64frombits(u64Val)
+}
+
+func AppendDoubleDCBA(byteVal []byte, f64Val float64) []byte {
+	u64Val := math.Float64bits(f64Val)
+	return append(byteVal,
+		byte(u64Val),
+		byte(u64Val>>8),
+		byte(u64Val>>16),
+		byte(u64Val>>24),
+		byte(u64Val>>32),
+		byte(u64Val>>40),
+		byte(u64Val>>48),
+		byte(u64Val>>56),
+	)
 }
