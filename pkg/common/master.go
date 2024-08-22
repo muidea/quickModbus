@@ -5,16 +5,16 @@ import cd "github.com/muidea/magicCommon/def"
 const MasterModule = "/kernel/master"
 
 const (
-	RawValue    = 0
-	BoolValue   = 1
-	Int16Value  = 2
-	UInt16Value = 3
-	Int32Value  = 4
-	UInt32Value = 5
-	Int64Value  = 6
-	UInt64Value = 7
-	FloatValue  = 8
-	DoubleValue = 9
+	RawValue     = 0
+	BoolValue    = 1
+	Int16Value   = 2
+	UInt16Value  = 3
+	Int32Value   = 4
+	UInt32Value  = 5
+	Int64Value   = 6
+	UInt64Value  = 7
+	Float32Value = 8
+	Float64Value = 9
 )
 
 /*

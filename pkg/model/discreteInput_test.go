@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/hex"
 	"testing"
+
+	"github.com/muidea/quickModbus/pkg/common"
 )
 
 // ReadDiscreteInputs
@@ -71,7 +73,11 @@ func TestDecodeMB003(t *testing.T) {
 	// 0, 1, 5, 6, 7, 8, 9, 12 = true
 	// other = false
 	trueSet := []int{0, 1, 5, 6, 7, 8, 9, 12}
-	boolArray := ByteArrayToBoolArrayDCBA(rspPtr.Data())
+	boolArray, err := common.BytesToBoolArray(rspPtr.Data(), common.CDABEndian)
+	if err != nil {
+		t.Errorf("common.BytesToBoolArray failed, err:%s", err.Error())
+		return
+	}
 	for idx := range boolArray {
 		findFlag := false
 		for _, val := range trueSet {
@@ -154,7 +160,11 @@ func TestDecodeMB004(t *testing.T) {
 	// 0, 1, 2, 7, 8, 9, 13, 14, 15, 19, 20 = true
 	// other = false
 	trueSet := []int{0, 1, 2, 7, 8, 9, 13, 14, 15, 19, 20}
-	boolArray := ByteArrayToBoolArrayDCBA(rspPtr.Data())
+	boolArray, err := common.BytesToBoolArray(rspPtr.Data(), common.CDABEndian)
+	if err != nil {
+		t.Errorf("common.BytesToBoolArray failed, err:%s", err.Error())
+		return
+	}
 	for idx := range boolArray {
 		findFlag := false
 		for _, val := range trueSet {

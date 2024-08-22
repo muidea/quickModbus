@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/muidea/quickModbus/pkg/common"
 )
 
 func TestMBReadCoilsReq(t *testing.T) {
@@ -196,7 +198,12 @@ func TestDecodeMB001(t *testing.T) {
 	// 0,6,7,8,9 = true
 	// other = false
 	trueSet := []int{0, 6, 7, 8, 9}
-	boolArray := ByteArrayToBoolArrayDCBA(rspPtr.Data())
+	boolArray, err := common.BytesToBoolArray(rspPtr.Data(), common.CDABEndian)
+	if err != nil {
+		t.Errorf("common.BytesToBoolArray failed, err:%s", err.Error())
+		return
+	}
+
 	for idx := range boolArray {
 		findFlag := false
 		for _, val := range trueSet {
@@ -279,7 +286,11 @@ func TestDecodeMB002(t *testing.T) {
 	// 0,1,2,6,11,12 = true
 	// other = false
 	trueSet := []int{0, 1, 2, 6, 11, 12}
-	boolArray := ByteArrayToBoolArrayDCBA(rspPtr.Data())
+	boolArray, err := common.BytesToBoolArray(rspPtr.Data(), common.CDABEndian)
+	if err != nil {
+		t.Errorf("common.BytesToBoolArray failed, err:%s", err.Error())
+		return
+	}
 	for idx := range boolArray {
 		findFlag := false
 		for _, val := range trueSet {
@@ -416,7 +427,12 @@ func TestDecodeMB011(t *testing.T) {
 	}
 
 	valSet := []bool{true, false, true, false, true, true, true, false, false, false}
-	boolArray := ByteArrayToBoolArrayDCBA(reqPtr.Data())
+	boolArray, err := common.BytesToBoolArray(reqPtr.Data(), common.CDABEndian)
+	if err != nil {
+		t.Errorf("common.BytesToBoolArray failed, err:%s", err.Error())
+		return
+	}
+
 	idx := uint16(0)
 	for ; idx < reqPtr.Count(); idx++ {
 		if valSet[idx] != boolArray[idx] {

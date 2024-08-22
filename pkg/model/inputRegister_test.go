@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/hex"
 	"testing"
+
+	"github.com/muidea/quickModbus/pkg/common"
 )
 
 // ReadInputRegisters
@@ -72,7 +74,7 @@ func TestDecodeMB006(t *testing.T) {
 		return
 	}
 
-	u16Array, u16Err := ByteArrayToUint16ABCDArray(rspPtr.Data())
+	u16Array, u16Err := common.BytesToUint16Array(rspPtr.Data(), common.ABCDEndian)
 	if u16Err != nil {
 		t.Errorf("decode ReadInputRegisters response, error:%s", u16Err.Error())
 		return
@@ -123,8 +125,8 @@ func TestDecodeMB007(t *testing.T) {
 		t.Errorf("decode WriteSingleRegister request data count failed")
 		return
 	}
-	u16 := ByteToUint16ABCD(reqPtr.Data())
-	if u16 != 6789 {
+	u16, uErr := common.BytesToUint16(reqPtr.Data(), common.ABCDEndian)
+	if uErr != nil || u16 != 6789 {
 		t.Errorf("decode WriteSingleRegister request data failed")
 		return
 	}
@@ -158,8 +160,8 @@ func TestDecodeMB007(t *testing.T) {
 		return
 	}
 
-	u16Val := ByteToUint16ABCD(rspPtr.Data())
-	if u16Val != 6789 {
+	u16Val, u16Err := common.BytesToUint16(rspPtr.Data(), common.ABCDEndian)
+	if u16Err != nil || u16Val != 6789 {
 		t.Errorf("byte to u16 failed")
 	}
 }
@@ -206,7 +208,7 @@ func TestDecodeMB008(t *testing.T) {
 		return
 	}
 
-	u16Array, u16Err := ByteArrayToUint16ABCDArray(reqPtr.Data())
+	u16Array, u16Err := common.BytesToUint16Array(reqPtr.Data(), common.ABCDEndian)
 	if u16Err != nil || len(u16Array) != 1 {
 		t.Errorf("decode WriteMultipleRegisters request data value failed")
 		return
@@ -292,7 +294,7 @@ func TestDecodeMB009(t *testing.T) {
 		return
 	}
 
-	u16Array, u16Err := ByteArrayToUint16ABCDArray(reqPtr.Data())
+	u16Array, u16Err := common.BytesToUint16Array(reqPtr.Data(), common.ABCDEndian)
 	if u16Err != nil || len(u16Array) != 10 {
 		t.Errorf("decode WriteMultipleRegisters request data value failed")
 		return

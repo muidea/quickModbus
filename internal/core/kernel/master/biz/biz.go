@@ -6,7 +6,6 @@ import (
 	"github.com/muidea/magicCommon/foundation/cache"
 	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/quickModbus/pkg/common"
-	"github.com/muidea/quickModbus/pkg/model"
 )
 
 type Master struct {
@@ -72,17 +71,14 @@ func (s *Master) ReadCoils(slaveID string, address, count, endianType uint16) (r
 		return
 	}
 
-	if endianType == common.ABCDEndian {
-		ret = model.ByteArrayToBoolArrayABCD(readVal)
-		return
-	}
-	if endianType == common.DCBAEndian {
-		ret = model.ByteArrayToBoolArrayDCBA(readVal)
+	boolVal, boolErr := common.BytesToBoolArray(readVal, endianType)
+	if boolErr != nil {
+		log.Errorf("readCoils failed, error:%s", boolErr.Error())
+		err = cd.NewError(cd.UnExpected, boolErr.Error())
 		return
 	}
 
-	errMsg := fmt.Sprintf("illegal endian type, endianTYpe:%v", endianType)
-	err = cd.NewError(cd.UnExpected, errMsg)
+	ret = boolVal
 	return
 }
 
@@ -102,17 +98,14 @@ func (s *Master) ReadDiscreteInputs(slaveID string, address, count, endianType u
 		return
 	}
 
-	if endianType == common.ABCDEndian {
-		ret = model.ByteArrayToBoolArrayABCD(readVal)
-		return
-	}
-	if endianType == common.DCBAEndian {
-		ret = model.ByteArrayToBoolArrayDCBA(readVal)
+	boolVal, boolErr := common.BytesToBoolArray(readVal, endianType)
+	if boolErr != nil {
+		log.Errorf("readDiscreteInputs failed, error:%s", boolErr.Error())
+		err = cd.NewError(cd.UnExpected, boolErr.Error())
 		return
 	}
 
-	errMsg := fmt.Sprintf("illegal endian type, endianTYpe:%v", endianType)
-	err = cd.NewError(cd.UnExpected, errMsg)
+	ret = boolVal
 	return
 }
 
@@ -129,11 +122,17 @@ func (s *Master) ReadHoldingRegisters(slaveID string, address, count, valueType,
 	switch valueType {
 	case common.Int16Value, common.UInt16Value:
 		u16Count = count
-	case common.Int32Value, common.UInt32Value, common.FloatValue:
+	case common.Int32Value, common.UInt32Value, common.Float32Value:
 		u16Count = count * 2
-	case common.Int64Value, common.UInt64Value, common.DoubleValue:
+	case common.Int64Value, common.UInt64Value, common.Float64Value:
 		u16Count = count * 4
 	default:
+		errMsg := fmt.Sprintf("illegal valueType, type:%v", valueType)
+		log.Errorf("readHoldingRegisters failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+	}
+	if err != nil {
+		return
 	}
 
 	readVal, readErr := vVal.(*MBMaster).ReadHoldingRegisters(address, u16Count)
@@ -147,6 +146,16 @@ func (s *Master) ReadHoldingRegisters(slaveID string, address, count, valueType,
 		log.Errorf("readHoldingRegisters failed, error:%s", errMsg)
 		err = cd.NewError(cd.UnExpected, errMsg)
 		return
+	}
+
+	switch valueType {
+	case common.Int16Value, common.UInt16Value:
+		u16Count = count
+	case common.Int32Value, common.UInt32Value, common.Float32Value:
+		u16Count = count * 2
+	case common.Int64Value, common.UInt64Value, common.Float64Value:
+		u16Count = count * 4
+	default:
 	}
 
 	return
