@@ -118,7 +118,7 @@ func (s *MBMaster) OnRecvData(ep tcp.Endpoint, data []byte) {
 	}
 }
 
-func (s *MBMaster) ReadCoils(address, count uint16) (ret []byte, exCode byte, err error) {
+func (s *MBMaster) ReadCoils(address, count uint16) (retData []byte, exCode byte, err error) {
 	protocol := model.NewReadCoilsReq(address, count)
 	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
 
@@ -162,12 +162,12 @@ func (s *MBMaster) ReadCoils(address, count uint16) (ret []byte, exCode byte, er
 		return
 	}
 
-	ret = readVal.Data()
+	retData = readVal.Data()
 	exCode = readVal.ExceptionCode()
 	return
 }
 
-func (s *MBMaster) ReadDiscreteInputs(address, count uint16) (ret []byte, exCode byte, err error) {
+func (s *MBMaster) ReadDiscreteInputs(address, count uint16) (retData []byte, exCode byte, err error) {
 	protocol := model.NewReadDiscreteInputsReq(address, count)
 	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
 
@@ -211,12 +211,12 @@ func (s *MBMaster) ReadDiscreteInputs(address, count uint16) (ret []byte, exCode
 		return
 	}
 
-	ret = readVal.Data()
+	retData = readVal.Data()
 	exCode = readVal.ExceptionCode()
 	return
 }
 
-func (s *MBMaster) ReadHoldingRegisters(address, count uint16) (ret []byte, exCode byte, err error) {
+func (s *MBMaster) ReadHoldingRegisters(address, count uint16) (retData []byte, exCode byte, err error) {
 	protocol := model.NewReadHoldingRegistersReq(address, count)
 	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
 
@@ -260,12 +260,12 @@ func (s *MBMaster) ReadHoldingRegisters(address, count uint16) (ret []byte, exCo
 		return
 	}
 
-	ret = readVal.Data()
+	retData = readVal.Data()
 	exCode = readVal.ExceptionCode()
 	return
 }
 
-func (s *MBMaster) ReadInputRegisters(address, count uint16) (ret []byte, exCode byte, err error) {
+func (s *MBMaster) ReadInputRegisters(address, count uint16) (retData []byte, exCode byte, err error) {
 	protocol := model.NewReadInputRegistersReq(address, count)
 	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
 
@@ -309,7 +309,7 @@ func (s *MBMaster) ReadInputRegisters(address, count uint16) (ret []byte, exCode
 		return
 	}
 
-	ret = readVal.Data()
+	retData = readVal.Data()
 	exCode = readVal.ExceptionCode()
 	return
 }
