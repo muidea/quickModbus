@@ -11,7 +11,7 @@ import (
 	engine "github.com/muidea/magicEngine/http"
 
 	_ "github.com/muidea/quickModbus/internal/core/kernel/master"
-	_ "github.com/muidea/quickModbus/internal/core/kernel/slave"
+	//_ "github.com/muidea/quickModbus/internal/core/kernel/slave"
 )
 
 // New 新建Core

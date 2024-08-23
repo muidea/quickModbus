@@ -36,12 +36,13 @@ github.com/muidea/magicCommon/event
 github.com/muidea/magicCommon/execute
 github.com/muidea/magicCommon/foundation/cache
 github.com/muidea/magicCommon/foundation/log
+github.com/muidea/magicCommon/foundation/net
 github.com/muidea/magicCommon/foundation/signal
 github.com/muidea/magicCommon/foundation/util
 github.com/muidea/magicCommon/module
 github.com/muidea/magicCommon/service
 github.com/muidea/magicCommon/task
-# github.com/muidea/magicEngine v1.3.6
+# github.com/muidea/magicEngine v1.3.8
 ## explicit; go 1.19
 github.com/muidea/magicEngine/http
 github.com/muidea/magicEngine/tcp
@@ -52,6 +53,9 @@ golang.org/x/crypto/sha3
 ## explicit; go 1.18
 golang.org/x/net/html
 golang.org/x/net/html/atom
+# golang.org/x/sync v0.6.0
+## explicit; go 1.18
+golang.org/x/sync/singleflight
 # golang.org/x/sys v0.18.0
 ## explicit; go 1.18
 golang.org/x/sys/cpu
@@ -61,3 +65,9 @@ golang.org/x/text/internal/language
 golang.org/x/text/internal/language/compact
 golang.org/x/text/internal/tag
 golang.org/x/text/language
+# gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc
+## explicit
+gopkg.in/alexcesaro/quotedprintable.v3
+# gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
+## explicit
+gopkg.in/gomail.v2

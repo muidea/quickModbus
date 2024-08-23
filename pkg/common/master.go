@@ -71,7 +71,7 @@ type ReadCoilsRequest struct {
 
 type ReadCoilsResponse struct {
 	cd.Result
-	Values []bool `json:"values"`
+	Values interface{} `json:"values"`
 }
 
 type ReadDiscreteInputsRequest struct {
@@ -82,7 +82,7 @@ type ReadDiscreteInputsRequest struct {
 
 type ReadDiscreteInputsResponse struct {
 	cd.Result
-	Values []bool `json:"values"`
+	Values interface{} `json:"values"`
 }
 
 type ReadHoldingRegistersRequest struct {
@@ -94,7 +94,7 @@ type ReadHoldingRegistersRequest struct {
 
 type ReadHoldingRegistersResponse struct {
 	cd.Result
-	Values []interface{} `json:"values"`
+	Values interface{} `json:"values"`
 }
 
 type ReadReadInputRegistersRequest struct {
@@ -106,7 +106,7 @@ type ReadReadInputRegistersRequest struct {
 
 type ReadReadInputRegistersResponse struct {
 	cd.Result
-	Values []interface{} `json:"values"`
+	Values interface{} `json:"values"`
 }
 
 type WriteSingleCoilRequest struct {

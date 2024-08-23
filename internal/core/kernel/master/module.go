@@ -6,6 +6,8 @@ import (
 	"github.com/muidea/magicCommon/task"
 	engine "github.com/muidea/magicEngine/http"
 
+	"github.com/muidea/quickModbus/internal/core/kernel/master/biz"
+	"github.com/muidea/quickModbus/internal/core/kernel/master/service"
 	"github.com/muidea/quickModbus/pkg/common"
 )
 
@@ -17,6 +19,9 @@ type Master struct {
 	routeRegistry     engine.RouteRegistry
 	eventHub          event.Hub
 	backgroundRoutine task.BackgroundRoutine
+
+	bizPtr     *biz.Master
+	servicePtr *service.Master
 }
 
 func New() *Master {
@@ -35,8 +40,11 @@ func (s *Master) Setup(endpointName string, eventHub event.Hub, backgroundRoutin
 	s.eventHub = eventHub
 	s.backgroundRoutine = backgroundRoutine
 
+	s.bizPtr = biz.New(eventHub, backgroundRoutine)
+	s.servicePtr = service.New(s.bizPtr)
+	s.servicePtr.BindRegistry(s.routeRegistry)
 }
 
 func (s *Master) Run() {
-
+	s.servicePtr.RegisterRoute()
 }
