@@ -118,7 +118,7 @@ func (s *MBMaster) OnRecvData(ep tcp.Endpoint, data []byte) {
 	}
 }
 
-func (s *MBMaster) ReadCoils(address, count uint16) (ret []byte, err error) {
+func (s *MBMaster) ReadCoils(address, count uint16) (ret []byte, exCode byte, err error) {
 	protocol := model.NewReadCoilsReq(address, count)
 	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
 
@@ -163,10 +163,11 @@ func (s *MBMaster) ReadCoils(address, count uint16) (ret []byte, err error) {
 	}
 
 	ret = readVal.Data()
+	exCode = readVal.ExceptionCode()
 	return
 }
 
-func (s *MBMaster) ReadDiscreteInputs(address, count uint16) (ret []byte, err error) {
+func (s *MBMaster) ReadDiscreteInputs(address, count uint16) (ret []byte, exCode byte, err error) {
 	protocol := model.NewReadDiscreteInputsReq(address, count)
 	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
 
@@ -211,10 +212,11 @@ func (s *MBMaster) ReadDiscreteInputs(address, count uint16) (ret []byte, err er
 	}
 
 	ret = readVal.Data()
+	exCode = readVal.ExceptionCode()
 	return
 }
 
-func (s *MBMaster) ReadHoldingRegisters(address, count uint16) (ret []byte, err error) {
+func (s *MBMaster) ReadHoldingRegisters(address, count uint16) (ret []byte, exCode byte, err error) {
 	protocol := model.NewReadHoldingRegistersReq(address, count)
 	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
 
@@ -259,10 +261,11 @@ func (s *MBMaster) ReadHoldingRegisters(address, count uint16) (ret []byte, err 
 	}
 
 	ret = readVal.Data()
+	exCode = readVal.ExceptionCode()
 	return
 }
 
-func (s *MBMaster) ReadInputRegisters(address, count uint16) (ret []byte, err error) {
+func (s *MBMaster) ReadInputRegisters(address, count uint16) (ret []byte, exCode byte, err error) {
 	protocol := model.NewReadInputRegistersReq(address, count)
 	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
 
@@ -307,10 +310,11 @@ func (s *MBMaster) ReadInputRegisters(address, count uint16) (ret []byte, err er
 	}
 
 	ret = readVal.Data()
+	exCode = readVal.ExceptionCode()
 	return
 }
 
-func (s *MBMaster) WriteSingleCoil(address uint16, data []byte) (retAddr uint16, retData []byte, err error) {
+func (s *MBMaster) WriteSingleCoil(address uint16, data []byte) (retAddr uint16, retData []byte, exCode byte, err error) {
 	protocol := model.NewWriteSingleCoilReq(address, data)
 	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
 
@@ -356,10 +360,11 @@ func (s *MBMaster) WriteSingleCoil(address uint16, data []byte) (retAddr uint16,
 
 	retAddr = readVal.Address()
 	retData = readVal.Data()
+	exCode = readVal.ExceptionCode()
 	return
 }
 
-func (s *MBMaster) WriteMultipleCoils(address, count uint16, data []byte) (retAddr, retCount uint16, err error) {
+func (s *MBMaster) WriteMultipleCoils(address, count uint16, data []byte) (retAddr, retCount uint16, exCode byte, err error) {
 	protocol := model.NewWriteMultipleCoilsReq(address, count, data)
 	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
 
@@ -405,10 +410,11 @@ func (s *MBMaster) WriteMultipleCoils(address, count uint16, data []byte) (retAd
 
 	retAddr = readVal.Address()
 	retCount = readVal.Count()
+	exCode = readVal.ExceptionCode()
 	return
 }
 
-func (s *MBMaster) WriteSingleRegister(address uint16, data []byte) (retAddr uint16, retData []byte, err error) {
+func (s *MBMaster) WriteSingleRegister(address uint16, data []byte) (retAddr uint16, retData []byte, exCode byte, err error) {
 	protocol := model.NewWriteSingleRegisterReq(address, data)
 	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
 
@@ -454,10 +460,11 @@ func (s *MBMaster) WriteSingleRegister(address uint16, data []byte) (retAddr uin
 
 	retAddr = readVal.Address()
 	retData = readVal.Data()
+	exCode = readVal.ExceptionCode()
 	return
 }
 
-func (s *MBMaster) WriteMultipleRegisters(address, count uint16, data []byte) (retAddr, retCount uint16, err error) {
+func (s *MBMaster) WriteMultipleRegisters(address, count uint16, data []byte) (retAddr, retCount uint16, exCode byte, err error) {
 	protocol := model.NewWriteMultipleRegistersReq(address, count, data)
 	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
 
@@ -503,6 +510,7 @@ func (s *MBMaster) WriteMultipleRegisters(address, count uint16, data []byte) (r
 
 	retAddr = readVal.Address()
 	retCount = readVal.Count()
+	exCode = readVal.ExceptionCode()
 	return
 }
 

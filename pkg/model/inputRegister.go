@@ -151,16 +151,23 @@ func NewReadInputRegistersRsp(data []byte) *MBReadInputRegistersRsp {
 	}
 }
 
-func EmptyReadInputRegistersRsp() *MBReadInputRegistersRsp {
-	return &MBReadInputRegistersRsp{}
+func EmptyReadInputRegistersRsp(exceptionCode byte) *MBReadInputRegistersRsp {
+	return &MBReadInputRegistersRsp{
+		exceptionCode: exceptionCode,
+	}
 }
 
 type MBReadInputRegistersRsp struct {
-	data []byte
+	exceptionCode byte
+	data          []byte
 }
 
 func (s *MBReadInputRegistersRsp) FuncCode() byte {
 	return ReadInputRegisters
+}
+
+func (s *MBReadInputRegistersRsp) ExceptionCode() byte {
+	return s.exceptionCode
 }
 
 func (s *MBReadInputRegistersRsp) Encode(writer io.Writer) (err byte) {
@@ -398,17 +405,24 @@ func NewWriteSingleRegisterRsp(address uint16, data []byte) *MBWriteSingleRegist
 	}
 }
 
-func EmptyWriteSingleRegisterRsp() *MBWriteSingleRegisterRsp {
-	return &MBWriteSingleRegisterRsp{}
+func EmptyWriteSingleRegisterRsp(exceptionCode byte) *MBWriteSingleRegisterRsp {
+	return &MBWriteSingleRegisterRsp{
+		exceptionCode: exceptionCode,
+	}
 }
 
 type MBWriteSingleRegisterRsp struct {
-	address uint16
-	data    []byte
+	exceptionCode byte
+	address       uint16
+	data          []byte
 }
 
 func (s *MBWriteSingleRegisterRsp) FuncCode() byte {
 	return WriteSingleRegister
+}
+
+func (s *MBWriteSingleRegisterRsp) ExceptionCode() byte {
+	return s.exceptionCode
 }
 
 func (s *MBWriteSingleRegisterRsp) Encode(writer io.Writer) (err byte) {
@@ -692,17 +706,24 @@ func NewWriteMultipleRegistersRsp(address, count uint16) *MBWriteMultipleRegiste
 	}
 }
 
-func EmptyWriteMultipleRegistersRsp() *MBWriteMultipleRegistersRsp {
-	return &MBWriteMultipleRegistersRsp{}
+func EmptyWriteMultipleRegistersRsp(exceptionCode byte) *MBWriteMultipleRegistersRsp {
+	return &MBWriteMultipleRegistersRsp{
+		exceptionCode: exceptionCode,
+	}
 }
 
 type MBWriteMultipleRegistersRsp struct {
-	address uint16
-	count   uint16
+	exceptionCode byte
+	address       uint16
+	count         uint16
 }
 
 func (s *MBWriteMultipleRegistersRsp) FuncCode() byte {
 	return WriteMultipleRegisters
+}
+
+func (s *MBWriteMultipleRegistersRsp) ExceptionCode() byte {
+	return s.exceptionCode
 }
 
 func (s *MBWriteMultipleRegistersRsp) Encode(writer io.Writer) (err byte) {

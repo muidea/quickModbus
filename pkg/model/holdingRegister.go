@@ -153,16 +153,23 @@ func NewReadHoldingRegistersRsp(data []byte) *MBReadHoldingRegistersRsp {
 	}
 }
 
-func EmptyReadHoldingRegistersRsp() *MBReadHoldingRegistersRsp {
-	return &MBReadHoldingRegistersRsp{}
+func EmptyReadHoldingRegistersRsp(exceptionCode byte) *MBReadHoldingRegistersRsp {
+	return &MBReadHoldingRegistersRsp{
+		exceptionCode: exceptionCode,
+	}
 }
 
 type MBReadHoldingRegistersRsp struct {
-	data []byte
+	exceptionCode byte
+	data          []byte
 }
 
 func (s *MBReadHoldingRegistersRsp) FuncCode() byte {
 	return ReadHoldingRegisters
+}
+
+func (s *MBReadHoldingRegistersRsp) ExceptionCode() byte {
+	return s.exceptionCode
 }
 
 func (s *MBReadHoldingRegistersRsp) Encode(writer io.Writer) (err byte) {

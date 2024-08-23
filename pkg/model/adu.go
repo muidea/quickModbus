@@ -273,45 +273,55 @@ func decodeResponsePDU(reader io.Reader) (MBTcpHeader, MBProtocol, byte) {
 		err = IllegalAddress
 		return nil, nil, err
 	}
-
+	var exceptionCode byte
+	hMask := funcCode[0] & 0xF0
+	lCode := funcCode[0] & 0x0F
+	if hMask == 0x80 {
+		exceptionRsp := EmptyExceptionRsp()
+		err = exceptionRsp.DecodePayload(reader)
+		if err != SuccessCode {
+			return nil, nil, err
+		}
+		exceptionCode = exceptionRsp.ExceptionCode()
+	}
 	var protocol MBProtocol
-	switch funcCode[0] {
+	switch lCode {
 	case ReadCoils:
-		protocol = EmptyReadCoilsRsp()
+		protocol = EmptyReadCoilsRsp(exceptionCode)
 	case ReadDiscreteInputs:
-		protocol = EmptyReadDiscreteInputsRsp()
+		protocol = EmptyReadDiscreteInputsRsp(exceptionCode)
 	case ReadHoldingRegisters:
-		protocol = EmptyReadHoldingRegistersRsp()
+		protocol = EmptyReadHoldingRegistersRsp(exceptionCode)
 	case ReadInputRegisters:
-		protocol = EmptyReadInputRegistersRsp()
+		protocol = EmptyReadInputRegistersRsp(exceptionCode)
 	case WriteSingleCoil:
-		protocol = EmptyWriteSingleCoilRsp()
+		protocol = EmptyWriteSingleCoilRsp(exceptionCode)
 	case WriteSingleRegister:
-		protocol = EmptyWriteSingleRegisterRsp()
+		protocol = EmptyWriteSingleRegisterRsp(exceptionCode)
 	case ReadExceptionStatus:
-		protocol = EmptyReadExceptionStatusRsp()
+		protocol = EmptyReadExceptionStatusRsp(exceptionCode)
 	case Diagnostics:
-		protocol = EmptyDiagnosticsRsp()
+		protocol = EmptyDiagnosticsRsp(exceptionCode)
 	case GetCommEventCounter:
-		protocol = EmptyGetCommEventCounterRsp()
+		protocol = EmptyGetCommEventCounterRsp(exceptionCode)
 	case GetCommEventLog:
-		protocol = EmptyGetCommEventLogRsp()
+		protocol = EmptyGetCommEventLogRsp(exceptionCode)
 	case WriteMultipleCoils:
-		protocol = EmptyWriteMultipleCoilsRsp()
+		protocol = EmptyWriteMultipleCoilsRsp(exceptionCode)
 	case WriteMultipleRegisters:
-		protocol = EmptyWriteMultipleRegistersRsp()
+		protocol = EmptyWriteMultipleRegistersRsp(exceptionCode)
 	case ReportSlaveID:
-		protocol = EmptyReportSlaveIDRsp()
+		protocol = EmptyReportSlaveIDRsp(exceptionCode)
 	case ReadFileRecord:
-		protocol = EmptyReadFileRecordRsp()
+		protocol = EmptyReadFileRecordRsp(exceptionCode)
 	case WriteFileRecord:
-		protocol = EmptyWriteFileRecordRsp()
+		protocol = EmptyWriteFileRecordRsp(exceptionCode)
 	case MaskWriteRegister:
-		protocol = EmptyMaskWriteRegisterRsp()
+		protocol = EmptyMaskWriteRegisterRsp(exceptionCode)
 	case ReadWriteMultipleRegisters:
-		protocol = EmptyReadWriteMultipleRegistersRsp()
+		protocol = EmptyReadWriteMultipleRegistersRsp(exceptionCode)
 	case ReadFIFOQueue:
-		protocol = EmptyReadFIFOQueueRsp()
+		protocol = EmptyReadFIFOQueueRsp(exceptionCode)
 	default:
 		err = IllegalFuncCode
 	}
@@ -319,12 +329,11 @@ func decodeResponsePDU(reader io.Reader) (MBTcpHeader, MBProtocol, byte) {
 	if err != SuccessCode {
 		return nil, nil, err
 	}
-	if err != SuccessCode {
-		return nil, nil, err
-	}
-	err = protocol.DecodePayload(reader)
-	if err != SuccessCode {
-		return nil, nil, err
+	if hMask != 0x80 {
+		err = protocol.DecodePayload(reader)
+		if err != SuccessCode {
+			return nil, nil, err
+		}
 	}
 
 	return header, protocol, err

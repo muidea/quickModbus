@@ -11,6 +11,7 @@ import (
 
 	"github.com/muidea/quickModbus/internal/core/base/biz"
 	"github.com/muidea/quickModbus/pkg/common"
+	"github.com/muidea/quickModbus/pkg/model"
 )
 
 type Master struct {
@@ -66,7 +67,7 @@ func (s *Master) DisConnectSlave(slaveID string) (err *cd.Result) {
 	return
 }
 
-func (s *Master) ReadCoils(slaveID string, address, count, endianType uint16) (ret []bool, err *cd.Result) {
+func (s *Master) ReadCoils(slaveID string, address, count, endianType uint16) (ret []bool, exCode byte, err *cd.Result) {
 	vVal := s.slaveInfoCache.Fetch(slaveID)
 	if vVal == nil {
 		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
@@ -75,10 +76,17 @@ func (s *Master) ReadCoils(slaveID string, address, count, endianType uint16) (r
 		return
 	}
 
-	readVal, readErr := vVal.(*MBMaster).ReadCoils(address, count)
+	readVal, readExCode, readErr := vVal.(*MBMaster).ReadCoils(address, count)
 	if readErr != nil {
 		log.Errorf("readCoils failed, error:%s", readErr.Error())
 		err = cd.NewError(cd.UnExpected, readErr.Error())
+		return
+	}
+	if readExCode != model.SuccessCode {
+		exCode = readExCode
+		errMsg := fmt.Sprintf("modbus exception code:%v", readExCode)
+		log.Errorf("readCoils failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
 		return
 	}
 
@@ -93,7 +101,7 @@ func (s *Master) ReadCoils(slaveID string, address, count, endianType uint16) (r
 	return
 }
 
-func (s *Master) ReadDiscreteInputs(slaveID string, address, count, endianType uint16) (ret []bool, err *cd.Result) {
+func (s *Master) ReadDiscreteInputs(slaveID string, address, count, endianType uint16) (ret []bool, exCode byte, err *cd.Result) {
 	vVal := s.slaveInfoCache.Fetch(slaveID)
 	if vVal == nil {
 		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
@@ -102,10 +110,17 @@ func (s *Master) ReadDiscreteInputs(slaveID string, address, count, endianType u
 		return
 	}
 
-	readVal, readErr := vVal.(*MBMaster).ReadDiscreteInputs(address, count)
+	readVal, readExCode, readErr := vVal.(*MBMaster).ReadDiscreteInputs(address, count)
 	if readErr != nil {
 		log.Errorf("readDiscreteInputs failed, error:%s", readErr.Error())
 		err = cd.NewError(cd.UnExpected, readErr.Error())
+		return
+	}
+	if readExCode != model.SuccessCode {
+		exCode = readExCode
+		errMsg := fmt.Sprintf("modbus exception code:%v", readExCode)
+		log.Errorf("readDiscreteInputs failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
 		return
 	}
 
@@ -120,7 +135,7 @@ func (s *Master) ReadDiscreteInputs(slaveID string, address, count, endianType u
 	return
 }
 
-func (s *Master) ReadHoldingRegisters(slaveID string, address, count, valueType, endianType uint16) (ret interface{}, err *cd.Result) {
+func (s *Master) ReadHoldingRegisters(slaveID string, address, count, valueType, endianType uint16) (ret interface{}, exCode byte, err *cd.Result) {
 	vVal := s.slaveInfoCache.Fetch(slaveID)
 	if vVal == nil {
 		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
@@ -146,12 +161,20 @@ func (s *Master) ReadHoldingRegisters(slaveID string, address, count, valueType,
 		return
 	}
 
-	readVal, readErr := vVal.(*MBMaster).ReadHoldingRegisters(address, u16Count)
+	readVal, readExCode, readErr := vVal.(*MBMaster).ReadHoldingRegisters(address, u16Count)
 	if readErr != nil {
 		log.Errorf("readHoldingRegisters failed, error:%s", readErr.Error())
 		err = cd.NewError(cd.UnExpected, readErr.Error())
 		return
 	}
+	if readExCode != model.SuccessCode {
+		exCode = readExCode
+		errMsg := fmt.Sprintf("modbus exception code:%v", readExCode)
+		log.Errorf("readHoldingRegisters failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
 	if len(readVal) != int(u16Count*2) {
 		errMsg := fmt.Sprintf("illegal read value count")
 		log.Errorf("readHoldingRegisters failed, error:%s", errMsg)
@@ -190,7 +213,7 @@ func (s *Master) ReadHoldingRegisters(slaveID string, address, count, valueType,
 	return
 }
 
-func (s *Master) ReadInputRegisters(slaveID string, address, count, valueType, endianType uint16) (ret interface{}, err *cd.Result) {
+func (s *Master) ReadInputRegisters(slaveID string, address, count, valueType, endianType uint16) (ret interface{}, exCode byte, err *cd.Result) {
 	vVal := s.slaveInfoCache.Fetch(slaveID)
 	if vVal == nil {
 		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
@@ -216,12 +239,20 @@ func (s *Master) ReadInputRegisters(slaveID string, address, count, valueType, e
 		return
 	}
 
-	readVal, readErr := vVal.(*MBMaster).ReadInputRegisters(address, u16Count)
+	readVal, readExCode, readErr := vVal.(*MBMaster).ReadInputRegisters(address, u16Count)
 	if readErr != nil {
 		log.Errorf("readInputRegisters failed, error:%s", readErr.Error())
 		err = cd.NewError(cd.UnExpected, readErr.Error())
 		return
 	}
+	if readExCode != model.SuccessCode {
+		exCode = readExCode
+		errMsg := fmt.Sprintf("modbus exception code:%v", readExCode)
+		log.Errorf("readInputRegisters failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
 	if len(readVal) != int(u16Count*2) {
 		errMsg := fmt.Sprintf("illegal read value count")
 		log.Errorf("readInputRegisters failed, error:%s", errMsg)

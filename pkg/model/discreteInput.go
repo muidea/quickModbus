@@ -153,16 +153,23 @@ func NewReadDiscreteInputsRsp(count byte, data []byte) *MBReadDiscreteInputsRsp 
 	}
 }
 
-func EmptyReadDiscreteInputsRsp() *MBReadDiscreteInputsRsp {
-	return &MBReadDiscreteInputsRsp{}
+func EmptyReadDiscreteInputsRsp(exceptionCode byte) *MBReadDiscreteInputsRsp {
+	return &MBReadDiscreteInputsRsp{
+		exceptionCode: exceptionCode,
+	}
 }
 
 type MBReadDiscreteInputsRsp struct {
-	data []byte
+	exceptionCode byte
+	data          []byte
 }
 
 func (s *MBReadDiscreteInputsRsp) FuncCode() byte {
 	return ReadDiscreteInputs
+}
+
+func (s *MBReadDiscreteInputsRsp) ExceptionCode() byte {
+	return s.exceptionCode
 }
 
 func (s *MBReadDiscreteInputsRsp) Encode(writer io.Writer) (err byte) {

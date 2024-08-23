@@ -71,7 +71,8 @@ type ReadCoilsRequest struct {
 
 type ReadCoilsResponse struct {
 	cd.Result
-	Values interface{} `json:"values"`
+	ExceptionCode byte        `json:"exceptionCode"`
+	Values        interface{} `json:"values"`
 }
 
 type ReadDiscreteInputsRequest struct {
@@ -82,7 +83,8 @@ type ReadDiscreteInputsRequest struct {
 
 type ReadDiscreteInputsResponse struct {
 	cd.Result
-	Values interface{} `json:"values"`
+	ExceptionCode byte        `json:"exceptionCode"`
+	Values        interface{} `json:"values"`
 }
 
 type ReadHoldingRegistersRequest struct {
@@ -94,7 +96,8 @@ type ReadHoldingRegistersRequest struct {
 
 type ReadHoldingRegistersResponse struct {
 	cd.Result
-	Values interface{} `json:"values"`
+	ExceptionCode byte        `json:"exceptionCode"`
+	Values        interface{} `json:"values"`
 }
 
 type ReadReadInputRegistersRequest struct {
@@ -106,7 +109,8 @@ type ReadReadInputRegistersRequest struct {
 
 type ReadReadInputRegistersResponse struct {
 	cd.Result
-	Values interface{} `json:"values"`
+	ExceptionCode byte        `json:"exceptionCode"`
+	Values        interface{} `json:"values"`
 }
 
 type WriteSingleCoilRequest struct {
@@ -116,6 +120,7 @@ type WriteSingleCoilRequest struct {
 
 type WriteSingleCoilResponse struct {
 	cd.Result
+	ExceptionCode byte `json:"exceptionCode"`
 }
 
 type WriteSingleRegisterRequest struct {
@@ -127,6 +132,7 @@ type WriteSingleRegisterRequest struct {
 
 type WriteSingleRegisterResponse struct {
 	cd.Result
+	ExceptionCode byte `json:"exceptionCode"`
 }
 
 type ReadExceptionStatusRequest struct {
@@ -134,7 +140,8 @@ type ReadExceptionStatusRequest struct {
 
 type ReadExceptionStatusResponse struct {
 	cd.Result
-	Value interface{} `json:"value"`
+	ExceptionCode byte        `json:"exceptionCode"`
+	Value         interface{} `json:"value"`
 }
 
 type DiagnosticsRequest struct {
@@ -144,8 +151,9 @@ type DiagnosticsRequest struct {
 
 type DiagnosticsResponse struct {
 	cd.Result
-	Function uint16 `json:"function"`
-	Value    string `json:"value"`
+	ExceptionCode byte   `json:"exceptionCode"`
+	Function      uint16 `json:"function"`
+	Value         string `json:"value"`
 }
 
 type GetCommEventCounterRequest struct {
@@ -153,8 +161,9 @@ type GetCommEventCounterRequest struct {
 
 type GetCommEventCounterResponse struct {
 	cd.Result
-	CommStatus uint16 `json:"commStatus"`
-	EventCount uint16 `json:"eventCount"`
+	ExceptionCode byte   `json:"exceptionCode"`
+	CommStatus    uint16 `json:"commStatus"`
+	EventCount    uint16 `json:"eventCount"`
 }
 
 type GetCommEventLogRequest struct {
@@ -162,10 +171,11 @@ type GetCommEventLogRequest struct {
 
 type GetCommEventLogResponse struct {
 	cd.Result
-	CommStatus   int `json:"commStatus"`
-	EventCount   int `json:"eventCount"`
-	MessageCount int `json:"messageCount"`
-	CommEvents   int `json:"commEvents"`
+	ExceptionCode byte `json:"exceptionCode"`
+	CommStatus    int  `json:"commStatus"`
+	EventCount    int  `json:"eventCount"`
+	MessageCount  int  `json:"messageCount"`
+	CommEvents    int  `json:"commEvents"`
 }
 
 type WriteMultipleCoilsRequest struct {
@@ -175,8 +185,9 @@ type WriteMultipleCoilsRequest struct {
 
 type WriteMultipleCoilsResponse struct {
 	cd.Result
-	Address int `json:"address"`
-	Count   int `json:"count"`
+	ExceptionCode byte `json:"exceptionCode"`
+	Address       int  `json:"address"`
+	Count         int  `json:"count"`
 }
 
 type WriteMultipleRegistersRequest struct {
@@ -187,8 +198,9 @@ type WriteMultipleRegistersRequest struct {
 
 type WriteMultipleRegistersResponse struct {
 	cd.Result
-	Address int `json:"address"`
-	Count   int `json:"count"`
+	ExceptionCode byte `json:"exceptionCode"`
+	Address       int  `json:"address"`
+	Count         int  `json:"count"`
 }
 
 type ReportSlaveIDRequest struct {
@@ -196,6 +208,7 @@ type ReportSlaveIDRequest struct {
 
 type ReportSlaveIDResponse struct {
 	cd.Result
+	ExceptionCode   byte   `json:"exceptionCode"`
 	SlaveID         string `json:"slaveID"`
 	IndicatorStatus int    `json:"indicatorStatus"`
 }
@@ -212,7 +225,8 @@ type ReadFileRecordRequest struct {
 
 type ReadFileRecordResponse struct {
 	cd.Result
-	ItemData []string `json:"itemData"`
+	ExceptionCode byte     `json:"exceptionCode"`
+	ItemData      []string `json:"itemData"`
 }
 
 type WriteItem struct {
@@ -227,7 +241,8 @@ type WriteFileRecordRequest struct {
 
 type WriteFileRecordResponse struct {
 	cd.Result
-	Items []*WriteItem `json:"items"`
+	ExceptionCode byte         `json:"exceptionCode"`
+	Items         []*WriteItem `json:"items"`
 }
 
 type MaskWriteRegisterRequest struct {
@@ -238,9 +253,10 @@ type MaskWriteRegisterRequest struct {
 
 type MaskWriteRegisterResponse struct {
 	cd.Result
-	Address int    `json:"address"`
-	AndMask []bool `json:"andMask"`
-	OrMask  []bool `json:"orMask"`
+	ExceptionCode byte   `json:"exceptionCode"`
+	Address       int    `json:"address"`
+	AndMask       []bool `json:"andMask"`
+	OrMask        []bool `json:"orMask"`
 }
 
 type ReadWriteMultipleRegistersRequest struct {
@@ -253,6 +269,7 @@ type ReadWriteMultipleRegistersRequest struct {
 
 type ReadWriteMultipleRegistersResponse struct {
 	cd.Result
+	ExceptionCode byte `json:"exceptionCode"`
 }
 
 type ReadFIFOQueueRequest struct {
@@ -260,4 +277,5 @@ type ReadFIFOQueueRequest struct {
 
 type ReadFIFOQueueResponse struct {
 	cd.Result
+	ExceptionCode byte `json:"exceptionCode"`
 }

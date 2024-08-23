@@ -133,9 +133,10 @@ func (s *Master) ReadCoils(ctx context.Context, res http.ResponseWriter, req *ht
 			break
 		}
 		slaveID := ctx.Value(slaveIDContextKey).(string)
-		readVal, readErr := s.bizPtr.ReadCoils(slaveID, param.Address, param.Count, param.EndianType)
+		readVal, readExCode, readErr := s.bizPtr.ReadCoils(slaveID, param.Address, param.Count, param.EndianType)
+		result.ExceptionCode = readExCode
 		if readErr != nil {
-			log.Errorf("read coils failed, slaveID:%s, address:%d, count:%d, endianType:%d, error:%s", slaveID, param.Address, param.Count, param.EndianType, readErr.Error())
+			log.Errorf("read coils failed, slaveID:%s, address:%d, count:%d, endianType:%d, exCode:%v, error:%s", slaveID, param.Address, param.Count, param.EndianType, readExCode, readErr.Error())
 			result.Result = *readErr
 			break
 		}
@@ -165,9 +166,10 @@ func (s *Master) ReadDiscreteInputs(ctx context.Context, res http.ResponseWriter
 			break
 		}
 		slaveID := ctx.Value(slaveIDContextKey).(string)
-		readVal, readErr := s.bizPtr.ReadDiscreteInputs(slaveID, param.Address, param.Count, param.EndianType)
+		readVal, readExCode, readErr := s.bizPtr.ReadDiscreteInputs(slaveID, param.Address, param.Count, param.EndianType)
+		result.ExceptionCode = readExCode
 		if readErr != nil {
-			log.Errorf("read discrete inputs failed, slaveID:%s, address:%d, count:%d, endianType:%d, error:%s", slaveID, param.Address, param.Count, param.EndianType, readErr.Error())
+			log.Errorf("read discrete inputs failed, slaveID:%s, address:%d, count:%d, endianType:%d, exCode:%v, error:%s", slaveID, param.Address, param.Count, param.EndianType, readExCode, readErr.Error())
 			result.Result = *readErr
 			break
 		}
@@ -197,9 +199,11 @@ func (s *Master) ReadHoldingRegisters(ctx context.Context, res http.ResponseWrit
 			break
 		}
 		slaveID := ctx.Value(slaveIDContextKey).(string)
-		readVal, readErr := s.bizPtr.ReadHoldingRegisters(slaveID, param.Address, param.Count, param.ValueType, param.EndianType)
+		readVal, readExCode, readErr := s.bizPtr.ReadHoldingRegisters(slaveID, param.Address, param.Count, param.ValueType, param.EndianType)
+		result.ExceptionCode = readExCode
+
 		if readErr != nil {
-			log.Errorf("read holding registers failed, slaveID:%s, address:%d, count:%d, valueType:%d, endianType:%d, error:%s", slaveID, param.Address, param.Count, param.ValueType, param.EndianType, readErr.Error())
+			log.Errorf("read holding registers failed, slaveID:%s, address:%d, count:%d, valueType:%d, endianType:%d, exCode:%v, error:%s", slaveID, param.Address, param.Count, param.ValueType, param.EndianType, readExCode, readErr.Error())
 			result.Result = *readErr
 			break
 		}
@@ -229,9 +233,10 @@ func (s *Master) ReadInputRegisters(ctx context.Context, res http.ResponseWriter
 			break
 		}
 		slaveID := ctx.Value(slaveIDContextKey).(string)
-		readVal, readErr := s.bizPtr.ReadInputRegisters(slaveID, param.Address, param.Count, param.ValueType, param.EndianType)
+		readVal, readExCode, readErr := s.bizPtr.ReadInputRegisters(slaveID, param.Address, param.Count, param.ValueType, param.EndianType)
+		result.ExceptionCode = readExCode
 		if readErr != nil {
-			log.Errorf("read input registers failed, slaveID:%s, address:%d, count:%d, valueType:%d, endianType:%d, error:%s", slaveID, param.Address, param.Count, param.ValueType, param.EndianType, readErr.Error())
+			log.Errorf("read input registers failed, slaveID:%s, address:%d, count:%d, valueType:%d, endianType:%d, exCode:%v, error:%s", slaveID, param.Address, param.Count, param.ValueType, param.EndianType, readExCode, readErr.Error())
 			result.Result = *readErr
 			break
 		}

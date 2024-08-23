@@ -157,16 +157,23 @@ func NewReadCoilsRsp(data []byte) *MBReadCoilsRsp {
 	}
 }
 
-func EmptyReadCoilsRsp() *MBReadCoilsRsp {
-	return &MBReadCoilsRsp{}
+func EmptyReadCoilsRsp(exceptionCode byte) *MBReadCoilsRsp {
+	return &MBReadCoilsRsp{
+		exceptionCode: exceptionCode,
+	}
 }
 
 type MBReadCoilsRsp struct {
-	data []byte
+	exceptionCode byte
+	data          []byte
 }
 
 func (s *MBReadCoilsRsp) FuncCode() byte {
 	return ReadCoils
+}
+
+func (s *MBReadCoilsRsp) ExceptionCode() byte {
+	return s.exceptionCode
 }
 
 func (s *MBReadCoilsRsp) Encode(writer io.Writer) (err byte) {
@@ -426,17 +433,24 @@ func NewWriteSingleCoilRsp(address uint16, data []byte) *MBWriteSingleCoilRsp {
 	}
 }
 
-func EmptyWriteSingleCoilRsp() *MBWriteSingleCoilRsp {
-	return &MBWriteSingleCoilRsp{}
+func EmptyWriteSingleCoilRsp(exceptionCode byte) *MBWriteSingleCoilRsp {
+	return &MBWriteSingleCoilRsp{
+		exceptionCode: exceptionCode,
+	}
 }
 
 type MBWriteSingleCoilRsp struct {
-	address uint16
-	data    []byte
+	exceptionCode byte
+	address       uint16
+	data          []byte
 }
 
 func (s *MBWriteSingleCoilRsp) FuncCode() byte {
 	return WriteSingleCoil
+}
+
+func (s *MBWriteSingleCoilRsp) ExceptionCode() byte {
+	return s.exceptionCode
 }
 
 func (s *MBWriteSingleCoilRsp) Encode(writer io.Writer) (err byte) {
@@ -752,17 +766,24 @@ func NewWriteMultipleCoilsRsp(address, count uint16) *MBWriteMultipleCoilsRsp {
 	}
 }
 
-func EmptyWriteMultipleCoilsRsp() *MBWriteMultipleCoilsRsp {
-	return &MBWriteMultipleCoilsRsp{}
+func EmptyWriteMultipleCoilsRsp(exceptionCode byte) *MBWriteMultipleCoilsRsp {
+	return &MBWriteMultipleCoilsRsp{
+		exceptionCode: exceptionCode,
+	}
 }
 
 type MBWriteMultipleCoilsRsp struct {
-	address uint16
-	count   uint16
+	exceptionCode byte
+	address       uint16
+	count         uint16
 }
 
 func (s *MBWriteMultipleCoilsRsp) FuncCode() byte {
 	return WriteMultipleCoils
+}
+
+func (s *MBWriteMultipleCoilsRsp) ExceptionCode() byte {
+	return s.exceptionCode
 }
 
 func (s *MBWriteMultipleCoilsRsp) Encode(writer io.Writer) (err byte) {

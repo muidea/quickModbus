@@ -93,16 +93,23 @@ func NewReadExceptionStatusRsp() *MBReadExceptionStatusRsp {
 	return &MBReadExceptionStatusRsp{}
 }
 
-func EmptyReadExceptionStatusRsp() *MBReadExceptionStatusRsp {
-	return &MBReadExceptionStatusRsp{}
+func EmptyReadExceptionStatusRsp(exceptionCode byte) *MBReadExceptionStatusRsp {
+	return &MBReadExceptionStatusRsp{
+		exceptionCode: exceptionCode,
+	}
 }
 
 type MBReadExceptionStatusRsp struct {
-	statusVal byte
+	exceptionCode byte
+	statusVal     byte
 }
 
 func (s *MBReadExceptionStatusRsp) FuncCode() byte {
 	return ReadExceptionStatus
+}
+
+func (s *MBReadExceptionStatusRsp) ExceptionCode() byte {
+	return s.exceptionCode
 }
 
 func (s *MBReadExceptionStatusRsp) Encode(writer io.Writer) (err byte) {
@@ -298,17 +305,24 @@ func NewDiagnosticsRsp() *MBDiagnosticsRsp {
 	return &MBDiagnosticsRsp{}
 }
 
-func EmptyDiagnosticsRsp() *MBDiagnosticsRsp {
-	return &MBDiagnosticsRsp{}
+func EmptyDiagnosticsRsp(exceptionCode byte) *MBDiagnosticsRsp {
+	return &MBDiagnosticsRsp{
+		exceptionCode: exceptionCode,
+	}
 }
 
 type MBDiagnosticsRsp struct {
-	dataFunction uint16
-	dataVal      []byte
+	exceptionCode byte
+	dataFunction  uint16
+	dataVal       []byte
 }
 
 func (s *MBDiagnosticsRsp) FuncCode() byte {
 	return Diagnostics
+}
+
+func (s *MBDiagnosticsRsp) ExceptionCode() byte {
+	return s.exceptionCode
 }
 
 func (s *MBDiagnosticsRsp) Encode(writer io.Writer) (err byte) {
@@ -478,17 +492,24 @@ func NewGetCommEventCounterRsp() *MBGetCommEventCounterRsp {
 	return &MBGetCommEventCounterRsp{}
 }
 
-func EmptyGetCommEventCounterRsp() *MBGetCommEventCounterRsp {
-	return &MBGetCommEventCounterRsp{}
+func EmptyGetCommEventCounterRsp(exceptionCode byte) *MBGetCommEventCounterRsp {
+	return &MBGetCommEventCounterRsp{
+		exceptionCode: exceptionCode,
+	}
 }
 
 type MBGetCommEventCounterRsp struct {
-	commStatus []byte
-	eventCount uint16
+	exceptionCode byte
+	commStatus    []byte
+	eventCount    uint16
 }
 
 func (s *MBGetCommEventCounterRsp) FuncCode() byte {
 	return GetCommEventCounter
+}
+
+func (s *MBGetCommEventCounterRsp) ExceptionCode() byte {
+	return s.exceptionCode
 }
 
 func (s *MBGetCommEventCounterRsp) Encode(writer io.Writer) (err byte) {
@@ -645,19 +666,26 @@ func NewGetCommEventLogRsp() *MBGetCommEventLogRsp {
 	return &MBGetCommEventLogRsp{}
 }
 
-func EmptyGetCommEventLogRsp() *MBGetCommEventLogRsp {
-	return &MBGetCommEventLogRsp{}
+func EmptyGetCommEventLogRsp(exceptionCode byte) *MBGetCommEventLogRsp {
+	return &MBGetCommEventLogRsp{
+		exceptionCode: exceptionCode,
+	}
 }
 
 type MBGetCommEventLogRsp struct {
-	commStatus   []byte
-	eventCount   uint16
-	messageCount uint16
-	commonEvents []byte
+	exceptionCode byte
+	commStatus    []byte
+	eventCount    uint16
+	messageCount  uint16
+	commonEvents  []byte
 }
 
 func (s *MBGetCommEventLogRsp) FuncCode() byte {
 	return GetCommEventLog
+}
+
+func (s *MBGetCommEventLogRsp) ExceptionCode() byte {
+	return s.exceptionCode
 }
 
 func (s *MBGetCommEventLogRsp) Encode(writer io.Writer) (err byte) {
@@ -847,17 +875,24 @@ func NewReportSlaveIDRsp() *MBReportSlaveIDRsp {
 	return &MBReportSlaveIDRsp{}
 }
 
-func EmptyReportSlaveIDRsp() *MBReportSlaveIDRsp {
-	return &MBReportSlaveIDRsp{}
+func EmptyReportSlaveIDRsp(exceptionCode byte) *MBReportSlaveIDRsp {
+	return &MBReportSlaveIDRsp{
+		exceptionCode: exceptionCode,
+	}
 }
 
 type MBReportSlaveIDRsp struct {
+	exceptionCode   byte
 	slaveID         []byte
 	indicatorStatus byte
 }
 
 func (s *MBReportSlaveIDRsp) FuncCode() byte {
 	return ReportSlaveID
+}
+
+func (s *MBReportSlaveIDRsp) ExceptionCode() byte {
+	return s.exceptionCode
 }
 
 func (s *MBReportSlaveIDRsp) Encode(writer io.Writer) (err byte) {
@@ -1117,8 +1152,10 @@ func NewReadFileRecordRsp() *MBReadFileRecordRsp {
 	return &MBReadFileRecordRsp{}
 }
 
-func EmptyReadFileRecordRsp() *MBReadFileRecordRsp {
-	return &MBReadFileRecordRsp{}
+func EmptyReadFileRecordRsp(exceptionCode byte) *MBReadFileRecordRsp {
+	return &MBReadFileRecordRsp{
+		exceptionCode: exceptionCode,
+	}
 }
 
 type ReadResponseItem struct {
@@ -1182,11 +1219,16 @@ func (s *ReadResponseItem) decode(reader io.Reader) (err byte) {
 }
 
 type MBReadFileRecordRsp struct {
-	items []*ReadResponseItem
+	exceptionCode byte
+	items         []*ReadResponseItem
 }
 
 func (s *MBReadFileRecordRsp) FuncCode() byte {
 	return ReadFileRecord
+}
+
+func (s *MBReadFileRecordRsp) ExceptionCode() byte {
+	return s.exceptionCode
 }
 
 func (s *MBReadFileRecordRsp) Encode(writer io.Writer) (err byte) {
@@ -1585,16 +1627,23 @@ func NewWriteFileRecordRsp() *MBWriteFileRecordRsp {
 	return &MBWriteFileRecordRsp{}
 }
 
-func EmptyWriteFileRecordRsp() *MBWriteFileRecordRsp {
-	return &MBWriteFileRecordRsp{}
+func EmptyWriteFileRecordRsp(exceptionCode byte) *MBWriteFileRecordRsp {
+	return &MBWriteFileRecordRsp{
+		exceptionCode: exceptionCode,
+	}
 }
 
 type MBWriteFileRecordRsp struct {
-	items []*WriteItem
+	exceptionCode byte
+	items         []*WriteItem
 }
 
 func (s *MBWriteFileRecordRsp) FuncCode() byte {
 	return WriteFileRecord
+}
+
+func (s MBWriteFileRecordRsp) ExceptionCode() byte {
+	return s.exceptionCode
 }
 
 func (s *MBWriteFileRecordRsp) Encode(writer io.Writer) (err byte) {
@@ -1885,18 +1934,25 @@ func NewMaskWriteRegisterRsp() *MBMaskWriteRegisterRsp {
 	return &MBMaskWriteRegisterRsp{}
 }
 
-func EmptyMaskWriteRegisterRsp() *MBMaskWriteRegisterRsp {
-	return &MBMaskWriteRegisterRsp{}
+func EmptyMaskWriteRegisterRsp(exceptionCode byte) *MBMaskWriteRegisterRsp {
+	return &MBMaskWriteRegisterRsp{
+		exceptionCode: exceptionCode,
+	}
 }
 
 type MBMaskWriteRegisterRsp struct {
-	address uint16
-	andMask []byte
-	orMask  []byte
+	exceptionCode byte
+	address       uint16
+	andMask       []byte
+	orMask        []byte
 }
 
 func (s *MBMaskWriteRegisterRsp) FuncCode() byte {
 	return MaskWriteRegister
+}
+
+func (s *MBMaskWriteRegisterRsp) ExceptionCode() byte {
+	return s.exceptionCode
 }
 
 func (s *MBMaskWriteRegisterRsp) Encode(writer io.Writer) (err byte) {
@@ -2159,16 +2215,23 @@ func NewReadWriteMultipleRegistersRsp() *MBReadWriteMultipleRegistersRsp {
 	return &MBReadWriteMultipleRegistersRsp{}
 }
 
-func EmptyReadWriteMultipleRegistersRsp() *MBReadWriteMultipleRegistersRsp {
-	return &MBReadWriteMultipleRegistersRsp{}
+func EmptyReadWriteMultipleRegistersRsp(exceptionCode byte) *MBReadWriteMultipleRegistersRsp {
+	return &MBReadWriteMultipleRegistersRsp{
+		exceptionCode: exceptionCode,
+	}
 }
 
 type MBReadWriteMultipleRegistersRsp struct {
-	dataVal []byte
+	exceptionCode byte
+	dataVal       []byte
 }
 
 func (s *MBReadWriteMultipleRegistersRsp) FuncCode() byte {
 	return ReadWriteMultipleRegisters
+}
+
+func (s *MBReadWriteMultipleRegistersRsp) ExceptionCode() byte {
+	return s.exceptionCode
 }
 
 func (s *MBReadWriteMultipleRegistersRsp) Encode(writer io.Writer) (err byte) {
@@ -2367,17 +2430,24 @@ func NewReadFIFOQueueRsp() *MBReadFIFOQueueRsp {
 	return &MBReadFIFOQueueRsp{}
 }
 
-func EmptyReadFIFOQueueRsp() *MBReadFIFOQueueRsp {
-	return &MBReadFIFOQueueRsp{}
+func EmptyReadFIFOQueueRsp(exceptionCode byte) *MBReadFIFOQueueRsp {
+	return &MBReadFIFOQueueRsp{
+		exceptionCode: exceptionCode,
+	}
 }
 
 type MBReadFIFOQueueRsp struct {
-	dataCount uint16
-	dataVal   []byte
+	exceptionCode byte
+	dataCount     uint16
+	dataVal       []byte
 }
 
 func (s *MBReadFIFOQueueRsp) FuncCode() byte {
 	return ReadFIFOQueue
+}
+
+func (s *MBReadFIFOQueueRsp) ExceptionCode() byte {
+	return s.exceptionCode
 }
 
 func (s *MBReadFIFOQueueRsp) Encode(writer io.Writer) (err byte) {
@@ -2522,23 +2592,6 @@ func (s *MBExceptionRsp) Encode(writer io.Writer) (err byte) {
 	return
 }
 
-func (s *MBExceptionRsp) EncodePayload(writer io.Writer) (err byte) {
-	defer func() {
-		if errInfo := recover(); errInfo != nil {
-			err = IllegalData
-		}
-	}()
-
-	buffVal := make([]byte, 1)
-	buffVal = append(buffVal, s.exceptionCode)
-	wSize, wErr := writer.Write(buffVal)
-	if wErr != nil || wSize != 1 {
-		err = IllegalAddress
-	}
-
-	return
-}
-
 func (s *MBExceptionRsp) Decode(reader io.Reader) (err byte) {
 	defer func() {
 		if errInfo := recover(); errInfo != nil {
@@ -2554,6 +2607,23 @@ func (s *MBExceptionRsp) Decode(reader io.Reader) (err byte) {
 	}
 	s.funcCode = dataVal[0]
 	s.exceptionCode = dataVal[1]
+	return
+}
+
+func (s *MBExceptionRsp) EncodePayload(writer io.Writer) (err byte) {
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = IllegalData
+		}
+	}()
+
+	buffVal := make([]byte, 1)
+	buffVal = append(buffVal, s.exceptionCode)
+	wSize, wErr := writer.Write(buffVal)
+	if wErr != nil || wSize != 1 {
+		err = IllegalAddress
+	}
+
 	return
 }
 
