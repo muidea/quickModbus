@@ -25,14 +25,14 @@ type MBSerialHeader interface {
 type mbTcpHeader struct {
 	transaction uint16
 	protocol    uint16
-	dataLen     uint16
+	packLen     uint16
 	unitID      byte
 }
 
 func NewTcpHeader(transaction, dataLen uint16, unitID byte) MBTcpHeader {
 	return &mbTcpHeader{
 		transaction: transaction,
-		dataLen:     dataLen,
+		packLen:     dataLen + 1,
 		unitID:      unitID,
 	}
 }
@@ -50,7 +50,7 @@ func (s *mbTcpHeader) Protocol() uint16 {
 }
 
 func (s *mbTcpHeader) DataLen() uint16 {
-	return s.dataLen
+	return s.packLen - 1
 }
 
 func (s *mbTcpHeader) UnitID() byte {
@@ -67,7 +67,7 @@ func (s *mbTcpHeader) Encode(writer io.Writer) (err byte) {
 	buffVal := make([]byte, 0)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.transaction)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.protocol)
-	buffVal = binary.BigEndian.AppendUint16(buffVal, s.dataLen)
+	buffVal = binary.BigEndian.AppendUint16(buffVal, s.packLen)
 	buffVal = append(buffVal, s.unitID)
 	wSize, wErr := writer.Write(buffVal)
 	if wErr != nil || wSize != aduTcpHeadLength {
@@ -93,7 +93,7 @@ func (s *mbTcpHeader) Decode(reader io.Reader) (err byte) {
 
 	s.transaction = binary.BigEndian.Uint16(dataVal[0:2])
 	s.protocol = binary.BigEndian.Uint16(dataVal[2:4])
-	s.dataLen = binary.BigEndian.Uint16(dataVal[4:6])
+	s.packLen = binary.BigEndian.Uint16(dataVal[4:6])
 	s.unitID = dataVal[6]
 	return
 }
@@ -105,7 +105,7 @@ func (s *mbTcpHeader) Same(ptr *mbTcpHeader) bool {
 
 	return s.transaction == ptr.transaction &&
 		s.protocol == ptr.protocol &&
-		s.dataLen == ptr.dataLen &&
+		s.packLen == ptr.packLen &&
 		s.unitID == ptr.unitID
 }
 

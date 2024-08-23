@@ -76,7 +76,17 @@ func (s *Master) ReadCoils(slaveID string, address, count, endianType uint16) (r
 		return
 	}
 
-	readVal, readExCode, readErr := vVal.(*MBMaster).ReadCoils(address, count)
+	mbMasterPtr := vVal.(*MBMaster)
+	if !mbMasterPtr.IsConnect() {
+		connErr := mbMasterPtr.ReConnect()
+		if connErr != nil {
+			log.Errorf("readCoils failed, reconnect slave error:%s", connErr.Error())
+			err = cd.NewError(cd.UnExpected, connErr.Error())
+			return
+		}
+	}
+
+	readVal, readExCode, readErr := mbMasterPtr.ReadCoils(address, count)
 	if readErr != nil {
 		log.Errorf("readCoils failed, error:%s", readErr.Error())
 		err = cd.NewError(cd.UnExpected, readErr.Error())
@@ -97,7 +107,7 @@ func (s *Master) ReadCoils(slaveID string, address, count, endianType uint16) (r
 		return
 	}
 
-	ret = boolVal
+	ret = boolVal[:count]
 	return
 }
 
@@ -109,8 +119,17 @@ func (s *Master) ReadDiscreteInputs(slaveID string, address, count, endianType u
 		err = cd.NewError(cd.UnExpected, errMsg)
 		return
 	}
+	mbMasterPtr := vVal.(*MBMaster)
+	if !mbMasterPtr.IsConnect() {
+		connErr := mbMasterPtr.ReConnect()
+		if connErr != nil {
+			log.Errorf("readDiscreteInputs failed, reconnect slave error:%s", connErr.Error())
+			err = cd.NewError(cd.UnExpected, connErr.Error())
+			return
+		}
+	}
 
-	readVal, readExCode, readErr := vVal.(*MBMaster).ReadDiscreteInputs(address, count)
+	readVal, readExCode, readErr := mbMasterPtr.ReadDiscreteInputs(address, count)
 	if readErr != nil {
 		log.Errorf("readDiscreteInputs failed, error:%s", readErr.Error())
 		err = cd.NewError(cd.UnExpected, readErr.Error())
@@ -131,8 +150,66 @@ func (s *Master) ReadDiscreteInputs(slaveID string, address, count, endianType u
 		return
 	}
 
-	ret = boolVal
+	ret = boolVal[:count]
 	return
+}
+
+func (s *Master) decodeReadVal(readVal []byte, valueType, endianType, count uint16) (interface{}, error) {
+	var itemVal interface{}
+	var itemErr error
+	switch valueType {
+	case common.Int16Value:
+		iVal, iErr := common.BytesToInt16Array(readVal, endianType)
+		if iErr == nil {
+			itemVal = iVal[:count]
+		}
+		itemErr = iErr
+	case common.UInt16Value:
+		uVal, uErr := common.BytesToUint16Array(readVal, endianType)
+		if uErr == nil {
+			itemVal = uVal[:count]
+		}
+		itemErr = uErr
+	case common.Int32Value:
+		iVal, iErr := common.BytesToInt32Array(readVal, endianType)
+		if iErr == nil {
+			itemVal = iVal[:count]
+		}
+		itemErr = iErr
+	case common.UInt32Value:
+		uVal, uErr := common.BytesToUint32Array(readVal, endianType)
+		if uErr == nil {
+			itemVal = uVal[:count]
+		}
+		itemErr = uErr
+	case common.Float32Value:
+		fVal, fErr := common.BytesToFloat32Array(readVal, endianType)
+		if fErr == nil {
+			itemVal = fVal[:count]
+		}
+		itemErr = fErr
+	case common.Int64Value:
+		iVal, iErr := common.BytesToInt64Array(readVal, endianType)
+		if iErr == nil {
+			itemVal = iVal[:count]
+		}
+		itemErr = iErr
+	case common.UInt64Value:
+		uVal, uErr := common.BytesToUint64Array(readVal, endianType)
+		if uErr == nil {
+			itemVal = uVal[:count]
+		}
+		itemErr = uErr
+	case common.Float64Value:
+		fVal, fErr := common.BytesToFloat64Array(readVal, endianType)
+		if fErr == nil {
+			itemVal = fVal[:count]
+		}
+		itemErr = fErr
+	default:
+	}
+
+	return itemVal, itemErr
 }
 
 func (s *Master) ReadHoldingRegisters(slaveID string, address, count, valueType, endianType uint16) (ret interface{}, exCode byte, err *cd.Result) {
@@ -142,6 +219,16 @@ func (s *Master) ReadHoldingRegisters(slaveID string, address, count, valueType,
 		log.Errorf("readHoldingRegisters failed, error:%s", errMsg)
 		err = cd.NewError(cd.UnExpected, errMsg)
 		return
+	}
+
+	mbMasterPtr := vVal.(*MBMaster)
+	if !mbMasterPtr.IsConnect() {
+		connErr := mbMasterPtr.ReConnect()
+		if connErr != nil {
+			log.Errorf("readHoldingRegisters failed, reconnect slave error:%s", connErr.Error())
+			err = cd.NewError(cd.UnExpected, connErr.Error())
+			return
+		}
 	}
 
 	u16Count := uint16(0)
@@ -161,7 +248,7 @@ func (s *Master) ReadHoldingRegisters(slaveID string, address, count, valueType,
 		return
 	}
 
-	readVal, readExCode, readErr := vVal.(*MBMaster).ReadHoldingRegisters(address, u16Count)
+	readVal, readExCode, readErr := mbMasterPtr.ReadHoldingRegisters(address, u16Count)
 	if readErr != nil {
 		log.Errorf("readHoldingRegisters failed, error:%s", readErr.Error())
 		err = cd.NewError(cd.UnExpected, readErr.Error())
@@ -182,27 +269,7 @@ func (s *Master) ReadHoldingRegisters(slaveID string, address, count, valueType,
 		return
 	}
 
-	var itemVal interface{}
-	var itemErr error
-	switch valueType {
-	case common.Int16Value:
-		itemVal, itemErr = common.BytesToInt16Array(readVal, endianType)
-	case common.UInt16Value:
-		itemVal, itemErr = common.BytesToUint16Array(readVal, endianType)
-	case common.Int32Value:
-		itemVal, itemErr = common.BytesToInt32Array(readVal, endianType)
-	case common.UInt32Value:
-		itemVal, itemErr = common.BytesToUint32Array(readVal, endianType)
-	case common.Float32Value:
-		itemVal, itemErr = common.BytesToFloat32Array(readVal, endianType)
-	case common.Int64Value:
-		itemVal, itemErr = common.BytesToInt64Array(readVal, endianType)
-	case common.UInt64Value:
-		itemVal, itemErr = common.BytesToUint64Array(readVal, endianType)
-	case common.Float64Value:
-		itemVal, itemErr = common.BytesToFloat64Array(readVal, endianType)
-	default:
-	}
+	itemVal, itemErr := s.decodeReadVal(readVal, valueType, endianType, count)
 	if itemErr != nil {
 		log.Errorf("readHoldingRegisters failed, decode failed error:%s", itemErr.Error())
 		err = cd.NewError(cd.UnExpected, itemErr.Error())
@@ -220,6 +287,15 @@ func (s *Master) ReadInputRegisters(slaveID string, address, count, valueType, e
 		log.Errorf("readInputRegisters failed, error:%s", errMsg)
 		err = cd.NewError(cd.UnExpected, errMsg)
 		return
+	}
+	mbMasterPtr := vVal.(*MBMaster)
+	if !mbMasterPtr.IsConnect() {
+		connErr := mbMasterPtr.ReConnect()
+		if connErr != nil {
+			log.Errorf("readInputRegisters failed, reconnect slave error:%s", connErr.Error())
+			err = cd.NewError(cd.UnExpected, connErr.Error())
+			return
+		}
 	}
 
 	u16Count := uint16(0)
@@ -239,7 +315,7 @@ func (s *Master) ReadInputRegisters(slaveID string, address, count, valueType, e
 		return
 	}
 
-	readVal, readExCode, readErr := vVal.(*MBMaster).ReadInputRegisters(address, u16Count)
+	readVal, readExCode, readErr := mbMasterPtr.ReadInputRegisters(address, u16Count)
 	if readErr != nil {
 		log.Errorf("readInputRegisters failed, error:%s", readErr.Error())
 		err = cd.NewError(cd.UnExpected, readErr.Error())
@@ -260,27 +336,7 @@ func (s *Master) ReadInputRegisters(slaveID string, address, count, valueType, e
 		return
 	}
 
-	var itemVal interface{}
-	var itemErr error
-	switch valueType {
-	case common.Int16Value:
-		itemVal, itemErr = common.BytesToInt16Array(readVal, endianType)
-	case common.UInt16Value:
-		itemVal, itemErr = common.BytesToUint16Array(readVal, endianType)
-	case common.Int32Value:
-		itemVal, itemErr = common.BytesToInt32Array(readVal, endianType)
-	case common.UInt32Value:
-		itemVal, itemErr = common.BytesToUint32Array(readVal, endianType)
-	case common.Float32Value:
-		itemVal, itemErr = common.BytesToFloat32Array(readVal, endianType)
-	case common.Int64Value:
-		itemVal, itemErr = common.BytesToInt64Array(readVal, endianType)
-	case common.UInt64Value:
-		itemVal, itemErr = common.BytesToUint64Array(readVal, endianType)
-	case common.Float64Value:
-		itemVal, itemErr = common.BytesToFloat64Array(readVal, endianType)
-	default:
-	}
+	itemVal, itemErr := s.decodeReadVal(readVal, valueType, endianType, count)
 	if itemErr != nil {
 		log.Errorf("readInputRegisters failed, decode failed error:%s", itemErr.Error())
 		err = cd.NewError(cd.UnExpected, itemErr.Error())
