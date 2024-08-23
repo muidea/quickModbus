@@ -1,6 +1,10 @@
 package common
 
-import "testing"
+import (
+	"encoding/hex"
+	"strings"
+	"testing"
+)
 
 func TestByteToBoolArray(t *testing.T) {
 	// 00000001
@@ -181,6 +185,37 @@ func TestUint32(t *testing.T) {
 	}
 	if u32Val[0] != uVal1 || u32Val[1] != uVal2 {
 		t.Errorf("BytesToUint32Array failed, missmatch item value")
+		return
+	}
+}
+
+func TestSwapArray(t *testing.T) {
+	rawStr := "00000000C000405E"
+	byteVal, byteErr := hex.DecodeString(rawStr)
+	if byteErr != nil {
+		t.Errorf("hex.DecodeString failed, error:%s", byteErr.Error())
+		return
+	}
+
+	valStr := strings.ToUpper(hex.EncodeToString(byteVal))
+	if rawStr != valStr {
+		t.Errorf("hex.EncodeToString failed")
+		return
+	}
+
+	cdabStr := "00000000405EC000"
+	swapVal, _ := swapArray(byteVal, CDABEndian)
+	valStr = strings.ToUpper(hex.EncodeToString(swapVal))
+	if cdabStr != valStr {
+		t.Errorf("hex.EncodeToString failed")
+		return
+	}
+
+	badcStr := "0000000000C05E40"
+	swapVal, _ = swapArray(byteVal, BADCEndian)
+	valStr = strings.ToUpper(hex.EncodeToString(swapVal))
+	if badcStr != valStr {
+		t.Errorf("hex.EncodeToString failed")
 		return
 	}
 }
