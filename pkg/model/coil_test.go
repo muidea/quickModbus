@@ -345,7 +345,7 @@ func TestDecodeMB010(t *testing.T) {
 		return
 	}
 
-	if bytes.Compare(reqPtr.Data(), coilON) != 0 {
+	if bytes.Compare(reqPtr.Data(), CoilON) != 0 {
 		t.Errorf("decode WriteSingleCoil request data failed")
 		return
 	}
@@ -379,7 +379,7 @@ func TestDecodeMB010(t *testing.T) {
 		return
 	}
 
-	if bytes.Compare(rspPtr.Data(), coilON) != 0 {
+	if bytes.Compare(rspPtr.Data(), CoilON) != 0 {
 		t.Errorf("decode WriteSingleCoil response data failed")
 		return
 	}

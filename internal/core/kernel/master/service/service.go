@@ -256,11 +256,67 @@ func (s *Master) ReadInputRegisters(ctx context.Context, res http.ResponseWriter
 }
 
 func (s *Master) WriteSingleCoil(ctx context.Context, res http.ResponseWriter, req *http.Request) {
+	result := &common.WriteSingleCoilResponse{}
+	for {
+		param := &common.WriteSingleCoilRequest{}
+		err := fn.ParseJSONBody(req, nil, param)
+		if err != nil {
+			result.ErrorCode = cd.IllegalParam
+			result.Reason = "invalid param"
+			break
+		}
+		slaveID := ctx.Value(slaveIDContextKey).(string)
+		writeExCode, writeErr := s.bizPtr.WriteSingleCoil(slaveID, param.Address, param.Value)
+		result.ExceptionCode = writeExCode
+		if writeErr != nil {
+			log.Errorf("WriteSingleCoil failed, slaveID:%s, address:%d, exCode:%v, error:%s", slaveID, param.Address, writeExCode, writeErr.Error())
+			result.Result = *writeErr
+			break
+		}
 
+		result.ErrorCode = cd.Succeeded
+		break
+	}
+
+	block, err := json.Marshal(result)
+	if err == nil {
+		_, _ = res.Write(block)
+		return
+	}
+
+	res.WriteHeader(http.StatusExpectationFailed)
 }
 
 func (s *Master) WriteSingleRegister(ctx context.Context, res http.ResponseWriter, req *http.Request) {
+	result := &common.WriteSingleRegisterResponse{}
+	for {
+		param := &common.WriteSingleRegisterRequest{}
+		err := fn.ParseJSONBody(req, nil, param)
+		if err != nil {
+			result.ErrorCode = cd.IllegalParam
+			result.Reason = "invalid param"
+			break
+		}
+		slaveID := ctx.Value(slaveIDContextKey).(string)
+		writeExCode, writeErr := s.bizPtr.WriteSingleRegister(slaveID, param.Address, param.Value, param.ValueType, param.EndianType)
+		result.ExceptionCode = writeExCode
+		if writeErr != nil {
+			log.Errorf("WriteSingleRegister failed, slaveID:%s, address:%d, exCode:%v, error:%s", slaveID, param.Address, writeExCode, writeErr.Error())
+			result.Result = *writeErr
+			break
+		}
 
+		result.ErrorCode = cd.Succeeded
+		break
+	}
+
+	block, err := json.Marshal(result)
+	if err == nil {
+		_, _ = res.Write(block)
+		return
+	}
+
+	res.WriteHeader(http.StatusExpectationFailed)
 }
 
 func (s *Master) ReadExceptionStatus(ctx context.Context, res http.ResponseWriter, req *http.Request) {

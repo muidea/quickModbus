@@ -124,10 +124,10 @@ type WriteSingleCoilResponse struct {
 }
 
 type WriteSingleRegisterRequest struct {
-	Address    uint16      `json:"address"`
-	Value      interface{} `json:"value"`
-	ValueType  uint16      `json:"valueType"`
-	EndianType uint16      `json:"endianType"`
+	Address    uint16  `json:"address"`
+	Value      float64 `json:"value"`
+	ValueType  uint16  `json:"valueType"`
+	EndianType uint16  `json:"endianType"`
 }
 
 type WriteSingleRegisterResponse struct {

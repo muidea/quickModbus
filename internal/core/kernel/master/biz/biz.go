@@ -1,6 +1,7 @@
 package biz
 
 import (
+	"bytes"
 	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
@@ -344,5 +345,117 @@ func (s *Master) ReadInputRegisters(slaveID string, address, count, valueType, e
 	}
 
 	ret = itemVal
+	return
+}
+
+func (s *Master) WriteSingleCoil(slaveID string, address uint16, value bool) (exCode byte, err *cd.Result) {
+	vVal := s.slaveInfoCache.Fetch(slaveID)
+	if vVal == nil {
+		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
+		log.Errorf("readCoils failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	mbMasterPtr := vVal.(*MBMaster)
+	if !mbMasterPtr.IsConnect() {
+		connErr := mbMasterPtr.ReConnect()
+		if connErr != nil {
+			log.Errorf("readCoils failed, reconnect slave error:%s", connErr.Error())
+			err = cd.NewError(cd.UnExpected, connErr.Error())
+			return
+		}
+	}
+
+	var byteVal []byte
+	if value {
+		byteVal = model.CoilON
+	} else {
+		byteVal = model.CoilOFF
+	}
+
+	writeAddr, writeData, writeExCode, writeErr := mbMasterPtr.WriteSingleCoil(address, byteVal)
+	if writeErr != nil {
+		log.Errorf("writeCoils failed, error:%s", writeErr.Error())
+		err = cd.NewError(cd.UnExpected, writeErr.Error())
+		return
+	}
+	if writeExCode != model.SuccessCode {
+		exCode = writeExCode
+		errMsg := fmt.Sprintf("modbus exception code:%v", writeExCode)
+		log.Errorf("writeSingleCoil failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+	if writeAddr != address || bytes.Compare(byteVal, writeData) != 0 {
+		errMsg := fmt.Sprintf("mismatch write single coil value")
+		log.Errorf("writeSingleCoil failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	return
+}
+
+func (s *Master) WriteSingleRegister(slaveID string, address uint16, value float64, valueType, endianType uint16) (exCode byte, err *cd.Result) {
+	vVal := s.slaveInfoCache.Fetch(slaveID)
+	if vVal == nil {
+		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
+		log.Errorf("writeSingleRegister failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	mbMasterPtr := vVal.(*MBMaster)
+	if !mbMasterPtr.IsConnect() {
+		connErr := mbMasterPtr.ReConnect()
+		if connErr != nil {
+			log.Errorf("writeSingleRegister failed, reconnect slave error:%s", connErr.Error())
+			err = cd.NewError(cd.UnExpected, connErr.Error())
+			return
+		}
+	}
+
+	cVal, cErr := common.ConvertFloat64To(value, valueType)
+	if cErr != nil {
+		log.Errorf("writeSingleRegister failed, reconnect slave error:%s", cErr.Error())
+		err = cd.NewError(cd.UnExpected, cErr.Error())
+		return
+	}
+
+	var byteVal []byte
+	switch valueType {
+	case common.Int16Value:
+		byteVal, cErr = common.AppendInt16(byteVal, cVal.(int16), endianType)
+	case common.UInt16Value:
+		byteVal, cErr = common.AppendUint16(byteVal, cVal.(uint16), endianType)
+	default:
+		errMsg := fmt.Sprintf("illegal valueType, type:%v", valueType)
+		log.Errorf("WriteSingleRegister failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+	}
+	if err != nil {
+		return
+	}
+
+	writeAddr, writeData, writeExCode, writeErr := mbMasterPtr.WriteSingleRegister(address, byteVal)
+	if writeErr != nil {
+		log.Errorf("writeCoils failed, error:%s", writeErr.Error())
+		err = cd.NewError(cd.UnExpected, writeErr.Error())
+		return
+	}
+	if writeExCode != model.SuccessCode {
+		exCode = writeExCode
+		errMsg := fmt.Sprintf("modbus exception code:%v", writeExCode)
+		log.Errorf("WriteSingleRegister failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+	if writeAddr != address || bytes.Compare(byteVal, writeData) != 0 {
+		errMsg := fmt.Sprintf("mismatch write single register value")
+		log.Errorf("WriteSingleRegister failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
 	return
 }

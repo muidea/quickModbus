@@ -41,8 +41,8 @@ const (
 	ResponseAction = 1
 )
 
-var coilON = []byte{0xFF, 0x00}
-var coilOFF = []byte{0x00, 0x00}
+var CoilON = []byte{0xFF, 0x00}
+var CoilOFF = []byte{0x00, 0x00}
 
 const (
 	SuccessCode     = 0x00

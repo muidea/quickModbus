@@ -307,7 +307,7 @@ func (s *MBWriteSingleCoilReq) Encode(writer io.Writer) (err byte) {
 		}
 	}()
 
-	if bytes.Compare(s.data, coilON) != 0 && bytes.Compare(s.data, coilOFF) != 0 {
+	if bytes.Compare(s.data, CoilON) != 0 && bytes.Compare(s.data, CoilOFF) != 0 {
 		err = IllegalData
 		return
 	}
@@ -334,7 +334,7 @@ func (s *MBWriteSingleCoilReq) Decode(reader io.Reader) (err byte) {
 			return
 		}
 
-		if bytes.Compare(s.data, coilON) != 0 && bytes.Compare(s.data, coilOFF) != 0 {
+		if bytes.Compare(s.data, CoilON) != 0 && bytes.Compare(s.data, CoilOFF) != 0 {
 			err = IllegalData
 			return
 		}
@@ -369,7 +369,7 @@ func (s *MBWriteSingleCoilReq) EncodePayload(writer io.Writer) (err byte) {
 		}
 	}()
 
-	if bytes.Compare(s.data, coilON) != 0 && bytes.Compare(s.data, coilOFF) != 0 {
+	if bytes.Compare(s.data, CoilON) != 0 && bytes.Compare(s.data, CoilOFF) != 0 {
 		err = IllegalData
 		return
 	}
@@ -395,7 +395,7 @@ func (s *MBWriteSingleCoilReq) DecodePayload(reader io.Reader) (err byte) {
 			return
 		}
 
-		if bytes.Compare(s.data, coilON) != 0 && bytes.Compare(s.data, coilOFF) != 0 {
+		if bytes.Compare(s.data, CoilON) != 0 && bytes.Compare(s.data, CoilOFF) != 0 {
 			err = IllegalData
 			return
 		}
@@ -460,7 +460,7 @@ func (s *MBWriteSingleCoilRsp) Encode(writer io.Writer) (err byte) {
 		}
 	}()
 
-	if bytes.Compare(s.data, coilON) != 0 && bytes.Compare(s.data, coilOFF) != 0 {
+	if bytes.Compare(s.data, CoilON) != 0 && bytes.Compare(s.data, CoilOFF) != 0 {
 		err = IllegalData
 		return
 	}
@@ -487,7 +487,7 @@ func (s *MBWriteSingleCoilRsp) Decode(reader io.Reader) (err byte) {
 			return
 		}
 
-		if bytes.Compare(s.data, coilON) != 0 && bytes.Compare(s.data, coilOFF) != 0 {
+		if bytes.Compare(s.data, CoilON) != 0 && bytes.Compare(s.data, CoilOFF) != 0 {
 			err = IllegalData
 			return
 		}
@@ -521,7 +521,7 @@ func (s *MBWriteSingleCoilRsp) EncodePayload(writer io.Writer) (err byte) {
 		}
 	}()
 
-	if bytes.Compare(s.data, coilON) != 0 && bytes.Compare(s.data, coilOFF) != 0 {
+	if bytes.Compare(s.data, CoilON) != 0 && bytes.Compare(s.data, CoilOFF) != 0 {
 		err = IllegalData
 		return
 	}
@@ -547,7 +547,7 @@ func (s *MBWriteSingleCoilRsp) DecodePayload(reader io.Reader) (err byte) {
 			return
 		}
 
-		if bytes.Compare(s.data, coilON) != 0 && bytes.Compare(s.data, coilOFF) != 0 {
+		if bytes.Compare(s.data, CoilON) != 0 && bytes.Compare(s.data, CoilOFF) != 0 {
 			err = IllegalData
 			return
 		}

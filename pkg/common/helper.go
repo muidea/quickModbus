@@ -6,6 +6,37 @@ import (
 	"math"
 )
 
+func ConvertFloat64To(value float64, valueType uint16) (ret any, err error) {
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = fmt.Errorf("ConvertFloat64To valueType %v failed, %v", valueType, errInfo)
+		}
+	}()
+
+	switch valueType {
+	case Int16Value:
+		ret = int16(value)
+	case UInt16Value:
+		ret = uint16(value)
+	case Int32Value:
+		ret = int32(value)
+	case UInt32Value:
+		ret = uint32(value)
+	case Int64Value:
+		ret = int64(value)
+	case UInt64Value:
+		ret = uint64(value)
+	case Float32Value:
+		ret = float32(value)
+	case Float64Value:
+		ret = value
+	default:
+		err = fmt.Errorf("illegal valueType")
+	}
+
+	return
+}
+
 func swapArrayFor64Bits[T any](valArray []T, endianType uint16) (ret []T, err error) {
 	if len(valArray) < 8 {
 		ret = valArray
