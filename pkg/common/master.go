@@ -64,9 +64,8 @@ type ConnectSlaveResponse struct {
 }
 
 type ReadCoilsRequest struct {
-	Address    uint16 `json:"address"`
-	Count      uint16 `json:"count"`
-	EndianType uint16 `json:"endianType"`
+	Address uint16 `json:"address"`
+	Count   uint16 `json:"count"`
 }
 
 type ReadCoilsResponse struct {
@@ -76,9 +75,8 @@ type ReadCoilsResponse struct {
 }
 
 type ReadDiscreteInputsRequest struct {
-	Address    uint16 `json:"address"`
-	Count      uint16 `json:"count"`
-	EndianType uint16 `json:"endianType"`
+	Address uint16 `json:"address"`
+	Count   uint16 `json:"count"`
 }
 
 type ReadDiscreteInputsResponse struct {
@@ -124,10 +122,9 @@ type WriteSingleCoilResponse struct {
 }
 
 type WriteSingleRegisterRequest struct {
-	Address    uint16  `json:"address"`
-	Value      float64 `json:"value"`
-	ValueType  uint16  `json:"valueType"`
-	EndianType uint16  `json:"endianType"`
+	Address   uint16  `json:"address"`
+	Value     float64 `json:"value"`
+	ValueType uint16  `json:"valueType"`
 }
 
 type WriteSingleRegisterResponse struct {
@@ -179,28 +176,25 @@ type GetCommEventLogResponse struct {
 }
 
 type WriteMultipleCoilsRequest struct {
-	Address int    `json:"address"`
-	Value   []bool `json:"value"`
+	Address uint16 `json:"address"`
+	Values  []bool `json:"values"`
 }
 
 type WriteMultipleCoilsResponse struct {
 	cd.Result
 	ExceptionCode byte `json:"exceptionCode"`
-	Address       int  `json:"address"`
-	Count         int  `json:"count"`
 }
 
 type WriteMultipleRegistersRequest struct {
-	Address   int           `json:"address"`
-	Values    []interface{} `json:"values"`
-	ValueType int           `json:"valueType"`
+	Address    uint16    `json:"address"`
+	Values     []float64 `json:"values"`
+	ValueType  uint16    `json:"valueType"`
+	EndianType uint16    `json:"endianType"`
 }
 
 type WriteMultipleRegistersResponse struct {
 	cd.Result
 	ExceptionCode byte `json:"exceptionCode"`
-	Address       int  `json:"address"`
-	Count         int  `json:"count"`
 }
 
 type ReportSlaveIDRequest struct {

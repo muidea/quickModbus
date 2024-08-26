@@ -118,23 +118,23 @@ func checkArray[T any](arrayVal []T, lenVal int) []T {
 	return arrayVal
 }
 
-func BytesToBoolArray(byteVal []byte, endianType uint16) (ret []bool, err error) {
+func BytesToBoolArray(byteVal []byte) (ret []bool, err error) {
 	ret = bytesToBoolArray(byteVal)
 	return
 }
 
-func AppendBoolArray(byteVal []byte, boolVal []bool, endianType uint16) (ret []byte, err error) {
+func AppendBoolArray(byteVal []byte, boolVal []bool) (ret []byte, err error) {
 	bytes := boolArrayToByteArray(boolVal)
 	ret = append(byteVal, bytes...)
 	return
 }
 
-func BytesToUint16(byteVal []byte, endianType uint16) (ret uint16, err error) {
+func BytesToUint16(byteVal []byte) (ret uint16, err error) {
 	ret, err = bytesToUint16(byteVal)
 	return
 }
 
-func BytesToUint16Array(byteVal []byte, endianType uint16) (ret []uint16, err error) {
+func BytesToUint16Array(byteVal []byte) (ret []uint16, err error) {
 	for idx := 0; idx < len(byteVal); idx += 2 {
 		uVal, uErr := bytesToUint16(byteVal[idx : idx+2])
 		if uErr != nil {
@@ -148,18 +148,18 @@ func BytesToUint16Array(byteVal []byte, endianType uint16) (ret []uint16, err er
 	return
 }
 
-func AppendUint16(byteVal []byte, uVal, endianType uint16) (ret []byte, err error) {
+func AppendUint16(byteVal []byte, uVal uint16) (ret []byte, err error) {
 	bytes := uint16ToByteArray(uVal)
 	ret = append(byteVal, bytes...)
 	return
 }
 
-func BytesToInt16(byteVal []byte, endianType uint16) (ret int16, err error) {
+func BytesToInt16(byteVal []byte) (ret int16, err error) {
 	ret, err = bytesToInt16(byteVal)
 	return
 }
 
-func BytesToInt16Array(byteVal []byte, endianType uint16) (ret []int16, err error) {
+func BytesToInt16Array(byteVal []byte) (ret []int16, err error) {
 	for idx := 0; idx < len(byteVal); idx += 2 {
 		iVal, iErr := bytesToInt16(byteVal[idx : idx+2])
 		if iErr != nil {
@@ -173,7 +173,7 @@ func BytesToInt16Array(byteVal []byte, endianType uint16) (ret []int16, err erro
 	return
 }
 
-func AppendInt16(byteVal []byte, iVal int16, endianType uint16) (ret []byte, err error) {
+func AppendInt16(byteVal []byte, iVal int16) (ret []byte, err error) {
 	bytes := int16ToByteArray(iVal)
 	ret = append(byteVal, bytes...)
 	return

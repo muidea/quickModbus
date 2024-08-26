@@ -68,7 +68,7 @@ func (s *Master) DisConnectSlave(slaveID string) (err *cd.Result) {
 	return
 }
 
-func (s *Master) ReadCoils(slaveID string, address, count, endianType uint16) (ret []bool, exCode byte, err *cd.Result) {
+func (s *Master) ReadCoils(slaveID string, address, count uint16) (ret []bool, exCode byte, err *cd.Result) {
 	vVal := s.slaveInfoCache.Fetch(slaveID)
 	if vVal == nil {
 		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
@@ -101,7 +101,7 @@ func (s *Master) ReadCoils(slaveID string, address, count, endianType uint16) (r
 		return
 	}
 
-	boolVal, boolErr := common.BytesToBoolArray(readVal, endianType)
+	boolVal, boolErr := common.BytesToBoolArray(readVal)
 	if boolErr != nil {
 		log.Errorf("readCoils failed, error:%s", boolErr.Error())
 		err = cd.NewError(cd.UnExpected, boolErr.Error())
@@ -112,7 +112,7 @@ func (s *Master) ReadCoils(slaveID string, address, count, endianType uint16) (r
 	return
 }
 
-func (s *Master) ReadDiscreteInputs(slaveID string, address, count, endianType uint16) (ret []bool, exCode byte, err *cd.Result) {
+func (s *Master) ReadDiscreteInputs(slaveID string, address, count uint16) (ret []bool, exCode byte, err *cd.Result) {
 	vVal := s.slaveInfoCache.Fetch(slaveID)
 	if vVal == nil {
 		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
@@ -144,7 +144,7 @@ func (s *Master) ReadDiscreteInputs(slaveID string, address, count, endianType u
 		return
 	}
 
-	boolVal, boolErr := common.BytesToBoolArray(readVal, endianType)
+	boolVal, boolErr := common.BytesToBoolArray(readVal)
 	if boolErr != nil {
 		log.Errorf("readDiscreteInputs failed, error:%s", boolErr.Error())
 		err = cd.NewError(cd.UnExpected, boolErr.Error())
@@ -160,13 +160,13 @@ func (s *Master) decodeReadVal(readVal []byte, valueType, endianType, count uint
 	var itemErr error
 	switch valueType {
 	case common.Int16Value:
-		iVal, iErr := common.BytesToInt16Array(readVal, endianType)
+		iVal, iErr := common.BytesToInt16Array(readVal)
 		if iErr == nil {
 			itemVal = iVal[:count]
 		}
 		itemErr = iErr
 	case common.UInt16Value:
-		uVal, uErr := common.BytesToUint16Array(readVal, endianType)
+		uVal, uErr := common.BytesToUint16Array(readVal)
 		if uErr == nil {
 			itemVal = uVal[:count]
 		}
@@ -397,7 +397,59 @@ func (s *Master) WriteSingleCoil(slaveID string, address uint16, value bool) (ex
 	return
 }
 
-func (s *Master) WriteSingleRegister(slaveID string, address uint16, value float64, valueType, endianType uint16) (exCode byte, err *cd.Result) {
+func (s *Master) WriteMultipleCoils(slaveID string, address uint16, value []bool) (exCode byte, err *cd.Result) {
+	vVal := s.slaveInfoCache.Fetch(slaveID)
+	if vVal == nil {
+		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
+		log.Errorf("writeMultipleCoils failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	mbMasterPtr := vVal.(*MBMaster)
+	if !mbMasterPtr.IsConnect() {
+		connErr := mbMasterPtr.ReConnect()
+		if connErr != nil {
+			log.Errorf("writeMultipleCoils failed, reconnect slave error:%s", connErr.Error())
+			err = cd.NewError(cd.UnExpected, connErr.Error())
+			return
+		}
+	}
+
+	valCount := uint16(len(value))
+	var byteVal []byte
+	var byteErr error
+	byteVal, byteErr = common.AppendBoolArray(byteVal, value)
+	if byteErr != nil {
+		log.Errorf("writeMultipleCoils failed, common.AppendBoolArray error:%s", byteErr.Error())
+		err = cd.NewError(cd.UnExpected, byteErr.Error())
+		return
+	}
+
+	writeAddr, writeCount, writeExCode, writeErr := mbMasterPtr.WriteMultipleCoils(address, valCount, byteVal)
+	if writeErr != nil {
+		log.Errorf("writeMultipleCoils failed, error:%s", writeErr.Error())
+		err = cd.NewError(cd.UnExpected, writeErr.Error())
+		return
+	}
+	if writeExCode != model.SuccessCode {
+		exCode = writeExCode
+		errMsg := fmt.Sprintf("modbus exception code:%v", writeExCode)
+		log.Errorf("writeMultipleCoils failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+	if writeAddr != address || valCount != writeCount {
+		errMsg := fmt.Sprintf("mismatch write multiple coil value")
+		log.Errorf("writeMultipleCoils failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	return
+}
+
+func (s *Master) WriteSingleRegister(slaveID string, address uint16, value float64, valueType uint16) (exCode byte, err *cd.Result) {
 	vVal := s.slaveInfoCache.Fetch(slaveID)
 	if vVal == nil {
 		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
@@ -426,9 +478,9 @@ func (s *Master) WriteSingleRegister(slaveID string, address uint16, value float
 	var byteVal []byte
 	switch valueType {
 	case common.Int16Value:
-		byteVal, cErr = common.AppendInt16(byteVal, cVal.(int16), endianType)
+		byteVal, cErr = common.AppendInt16(byteVal, cVal.(int16))
 	case common.UInt16Value:
-		byteVal, cErr = common.AppendUint16(byteVal, cVal.(uint16), endianType)
+		byteVal, cErr = common.AppendUint16(byteVal, cVal.(uint16))
 	default:
 		errMsg := fmt.Sprintf("illegal valueType, type:%v", valueType)
 		log.Errorf("WriteSingleRegister failed, error:%s", errMsg)
@@ -457,5 +509,91 @@ func (s *Master) WriteSingleRegister(slaveID string, address uint16, value float
 		err = cd.NewError(cd.UnExpected, errMsg)
 		return
 	}
+	return
+}
+
+func (s *Master) WriteMultipleRegisters(slaveID string, address uint16, values []float64, valueTyp, endianType uint16) (exCode byte, err *cd.Result) {
+	vVal := s.slaveInfoCache.Fetch(slaveID)
+	if vVal == nil {
+		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
+		log.Errorf("writeMultipleRegisters failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	mbMasterPtr := vVal.(*MBMaster)
+	if !mbMasterPtr.IsConnect() {
+		connErr := mbMasterPtr.ReConnect()
+		if connErr != nil {
+			log.Errorf("writeMultipleRegisters failed, reconnect slave error:%s", connErr.Error())
+			err = cd.NewError(cd.UnExpected, connErr.Error())
+			return
+		}
+	}
+
+	var byteVal []byte
+	var byteErr error
+	valCount := uint16(0)
+	for _, val := range values {
+		cVal, cErr := common.ConvertFloat64To(val, valueTyp)
+		if cErr != nil {
+			log.Errorf("writeMultipleRegisters failed, common.ConvertFloat64To error:%s", cErr.Error())
+			err = cd.NewError(cd.UnExpected, cErr.Error())
+			return
+		}
+
+		switch valueTyp {
+		case common.Int16Value:
+			byteVal, byteErr = common.AppendInt16(byteVal, cVal.(int16))
+			valCount++
+		case common.UInt16Value:
+			byteVal, byteErr = common.AppendUint16(byteVal, cVal.(uint16))
+			valCount++
+		case common.Int32Value:
+			byteVal, byteErr = common.AppendInt32(byteVal, cVal.(int32), endianType)
+			valCount += 2
+		case common.UInt32Value:
+			byteVal, byteErr = common.AppendUint32(byteVal, cVal.(uint32), endianType)
+			valCount += 2
+		case common.Float32Value:
+			byteVal, byteErr = common.AppendFloat32(byteVal, cVal.(float32), endianType)
+			valCount += 2
+		case common.Int64Value:
+			byteVal, byteErr = common.AppendInt64(byteVal, cVal.(int64), endianType)
+			valCount += 4
+		case common.UInt64Value:
+			byteVal, byteErr = common.AppendUint64(byteVal, cVal.(uint64), endianType)
+			valCount += 4
+		case common.Float64Value:
+			byteVal, byteErr = common.AppendFloat64(byteVal, cVal.(float64), endianType)
+			valCount += 4
+		}
+		if byteErr != nil {
+			log.Errorf("writeMultipleRegisters failed, AppendValueToArray error:%s", byteErr.Error())
+			err = cd.NewError(cd.UnExpected, cErr.Error())
+			return
+		}
+	}
+
+	writeAddr, writeCount, writeExCode, writeErr := mbMasterPtr.WriteMultipleRegisters(address, valCount, byteVal)
+	if writeErr != nil {
+		log.Errorf("writeMultipleRegisters failed, error:%s", writeErr.Error())
+		err = cd.NewError(cd.UnExpected, writeErr.Error())
+		return
+	}
+	if writeExCode != model.SuccessCode {
+		exCode = writeExCode
+		errMsg := fmt.Sprintf("modbus exception code:%v", writeExCode)
+		log.Errorf("writeMultipleRegisters failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+	if writeAddr != address || valCount != writeCount {
+		errMsg := fmt.Sprintf("mismatch write multiple register values")
+		log.Errorf("writeMultipleRegisters failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
 	return
 }

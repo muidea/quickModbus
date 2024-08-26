@@ -133,10 +133,10 @@ func (s *Master) ReadCoils(ctx context.Context, res http.ResponseWriter, req *ht
 			break
 		}
 		slaveID := ctx.Value(slaveIDContextKey).(string)
-		readVal, readExCode, readErr := s.bizPtr.ReadCoils(slaveID, param.Address, param.Count, param.EndianType)
+		readVal, readExCode, readErr := s.bizPtr.ReadCoils(slaveID, param.Address, param.Count)
 		result.ExceptionCode = readExCode
 		if readErr != nil {
-			log.Errorf("read coils failed, slaveID:%s, address:%d, count:%d, endianType:%d, exCode:%v, error:%s", slaveID, param.Address, param.Count, param.EndianType, readExCode, readErr.Error())
+			log.Errorf("read coils failed, slaveID:%s, address:%d, count:%d, exCode:%v, error:%s", slaveID, param.Address, param.Count, readExCode, readErr.Error())
 			result.Result = *readErr
 			break
 		}
@@ -166,10 +166,10 @@ func (s *Master) ReadDiscreteInputs(ctx context.Context, res http.ResponseWriter
 			break
 		}
 		slaveID := ctx.Value(slaveIDContextKey).(string)
-		readVal, readExCode, readErr := s.bizPtr.ReadDiscreteInputs(slaveID, param.Address, param.Count, param.EndianType)
+		readVal, readExCode, readErr := s.bizPtr.ReadDiscreteInputs(slaveID, param.Address, param.Count)
 		result.ExceptionCode = readExCode
 		if readErr != nil {
-			log.Errorf("read discrete inputs failed, slaveID:%s, address:%d, count:%d, endianType:%d, exCode:%v, error:%s", slaveID, param.Address, param.Count, param.EndianType, readExCode, readErr.Error())
+			log.Errorf("read discrete inputs failed, slaveID:%s, address:%d, count:%d, exCode:%v, error:%s", slaveID, param.Address, param.Count, readExCode, readErr.Error())
 			result.Result = *readErr
 			break
 		}
@@ -298,7 +298,7 @@ func (s *Master) WriteSingleRegister(ctx context.Context, res http.ResponseWrite
 			break
 		}
 		slaveID := ctx.Value(slaveIDContextKey).(string)
-		writeExCode, writeErr := s.bizPtr.WriteSingleRegister(slaveID, param.Address, param.Value, param.ValueType, param.EndianType)
+		writeExCode, writeErr := s.bizPtr.WriteSingleRegister(slaveID, param.Address, param.Value, param.ValueType)
 		result.ExceptionCode = writeExCode
 		if writeErr != nil {
 			log.Errorf("WriteSingleRegister failed, slaveID:%s, address:%d, exCode:%v, error:%s", slaveID, param.Address, writeExCode, writeErr.Error())
@@ -336,11 +336,67 @@ func (s *Master) GetCommEventLog(ctx context.Context, res http.ResponseWriter, r
 }
 
 func (s *Master) WriteMultipleCoils(ctx context.Context, res http.ResponseWriter, req *http.Request) {
+	result := &common.WriteMultipleCoilsResponse{}
+	for {
+		param := &common.WriteMultipleCoilsRequest{}
+		err := fn.ParseJSONBody(req, nil, param)
+		if err != nil {
+			result.ErrorCode = cd.IllegalParam
+			result.Reason = "invalid param"
+			break
+		}
+		slaveID := ctx.Value(slaveIDContextKey).(string)
+		writeExCode, writeErr := s.bizPtr.WriteMultipleCoils(slaveID, param.Address, param.Values)
+		result.ExceptionCode = writeExCode
+		if writeErr != nil {
+			log.Errorf("WriteMultipleCoils failed, slaveID:%s, address:%d, exCode:%v, error:%s", slaveID, param.Address, writeExCode, writeErr.Error())
+			result.Result = *writeErr
+			break
+		}
 
+		result.ErrorCode = cd.Succeeded
+		break
+	}
+
+	block, err := json.Marshal(result)
+	if err == nil {
+		_, _ = res.Write(block)
+		return
+	}
+
+	res.WriteHeader(http.StatusExpectationFailed)
 }
 
 func (s *Master) WriteMultipleRegisters(ctx context.Context, res http.ResponseWriter, req *http.Request) {
+	result := &common.WriteMultipleRegistersResponse{}
+	for {
+		param := &common.WriteMultipleRegistersRequest{}
+		err := fn.ParseJSONBody(req, nil, param)
+		if err != nil {
+			result.ErrorCode = cd.IllegalParam
+			result.Reason = "invalid param"
+			break
+		}
+		slaveID := ctx.Value(slaveIDContextKey).(string)
+		writeExCode, writeErr := s.bizPtr.WriteMultipleRegisters(slaveID, param.Address, param.Values, param.ValueType, param.EndianType)
+		result.ExceptionCode = writeExCode
+		if writeErr != nil {
+			log.Errorf("WriteMultipleRegisters failed, slaveID:%s, address:%d, exCode:%v, error:%s", slaveID, param.Address, writeExCode, writeErr.Error())
+			result.Result = *writeErr
+			break
+		}
 
+		result.ErrorCode = cd.Succeeded
+		break
+	}
+
+	block, err := json.Marshal(result)
+	if err == nil {
+		_, _ = res.Write(block)
+		return
+	}
+
+	res.WriteHeader(http.StatusExpectationFailed)
 }
 
 func (s *Master) ReportSlaveID(ctx context.Context, res http.ResponseWriter, req *http.Request) {
