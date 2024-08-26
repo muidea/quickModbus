@@ -673,7 +673,7 @@ func (s *MBWriteMultipleCoilsReq) Decode(reader io.Reader) (err byte) {
 }
 
 func (s *MBWriteMultipleCoilsReq) CalcLen() uint16 {
-	return uint16(len(s.dataVal)) + 5
+	return uint16(len(s.dataVal)) + 6
 }
 
 func (s *MBWriteMultipleCoilsReq) EncodePayload(writer io.Writer) (err byte) {
@@ -744,7 +744,7 @@ func (s *MBWriteMultipleCoilsReq) DecodePayload(reader io.Reader) (err byte) {
 }
 
 func (s *MBWriteMultipleCoilsReq) CalcPayloadLen() uint16 {
-	return uint16(len(s.dataVal)) + 4
+	return uint16(len(s.dataVal)) + 5
 }
 
 func (s *MBWriteMultipleCoilsReq) Address() uint16 {

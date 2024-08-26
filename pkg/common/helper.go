@@ -519,10 +519,6 @@ func boolArrayToByteArray(boolVal []bool) []byte {
 }
 
 func boolArrayToByte(boolArray []bool) byte {
-	const sizeVal = 8
-	boolArray = checkArray(boolArray, sizeVal)
-
-	_ = boolArray[7]
 	var byteVal byte
 	for i, bit := range boolArray {
 		if bit {
