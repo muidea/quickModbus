@@ -74,7 +74,7 @@ func TestDecodeMB006(t *testing.T) {
 		return
 	}
 
-	u16Array, u16Err := common.BytesToUint16Array(rspPtr.Data(), common.ABCDEndian)
+	u16Array, u16Err := common.BytesToUint16Array(rspPtr.Data())
 	if u16Err != nil {
 		t.Errorf("decode ReadInputRegisters response, error:%s", u16Err.Error())
 		return
@@ -125,7 +125,7 @@ func TestDecodeMB007(t *testing.T) {
 		t.Errorf("decode WriteSingleRegister request data count failed")
 		return
 	}
-	u16, uErr := common.BytesToUint16(reqPtr.Data(), common.ABCDEndian)
+	u16, uErr := common.BytesToUint16(reqPtr.Data())
 	if uErr != nil || u16 != 6789 {
 		t.Errorf("decode WriteSingleRegister request data failed")
 		return
@@ -160,7 +160,7 @@ func TestDecodeMB007(t *testing.T) {
 		return
 	}
 
-	u16Val, u16Err := common.BytesToUint16(rspPtr.Data(), common.ABCDEndian)
+	u16Val, u16Err := common.BytesToUint16(rspPtr.Data())
 	if u16Err != nil || u16Val != 6789 {
 		t.Errorf("byte to u16 failed")
 	}
@@ -208,7 +208,7 @@ func TestDecodeMB008(t *testing.T) {
 		return
 	}
 
-	u16Array, u16Err := common.BytesToUint16Array(reqPtr.Data(), common.ABCDEndian)
+	u16Array, u16Err := common.BytesToUint16Array(reqPtr.Data())
 	if u16Err != nil || len(u16Array) != 1 {
 		t.Errorf("decode WriteMultipleRegisters request data value failed")
 		return
@@ -294,7 +294,7 @@ func TestDecodeMB009(t *testing.T) {
 		return
 	}
 
-	u16Array, u16Err := common.BytesToUint16Array(reqPtr.Data(), common.ABCDEndian)
+	u16Array, u16Err := common.BytesToUint16Array(reqPtr.Data())
 	if u16Err != nil || len(u16Array) != 10 {
 		t.Errorf("decode WriteMultipleRegisters request data value failed")
 		return

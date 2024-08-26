@@ -86,19 +86,19 @@ func TestUint16(t *testing.T) {
 	byteVal := []byte{}
 	var byteErr error
 
-	byteVal, byteErr = AppendUint16(byteVal, uVal1, ABCDEndian)
+	byteVal, byteErr = AppendUint16(byteVal, uVal1)
 	if byteErr != nil {
 		t.Errorf("AppendUint16 failed, error:%s", byteErr.Error())
 		return
 	}
 
-	byteVal, byteErr = AppendUint16(byteVal, uVal2, ABCDEndian)
+	byteVal, byteErr = AppendUint16(byteVal, uVal2)
 	if byteErr != nil {
 		t.Errorf("AppendUint16 failed, error:%s", byteErr.Error())
 		return
 	}
 
-	u16Val, u16Err := BytesToUint16Array(byteVal, ABCDEndian)
+	u16Val, u16Err := BytesToUint16Array(byteVal)
 	if u16Err != nil {
 		t.Errorf("BytesToUint16Array failed, error:%s", byteErr.Error())
 		return
@@ -113,7 +113,7 @@ func TestUint16(t *testing.T) {
 		return
 	}
 
-	u16Val, u16Err = BytesToUint16Array(byteVal, CDABEndian)
+	u16Val, u16Err = BytesToUint16Array(byteVal)
 	if u16Err != nil {
 		t.Errorf("BytesToUint16Array failed, error:%s", byteErr.Error())
 		return

@@ -73,7 +73,7 @@ func TestDecodeMB003(t *testing.T) {
 	// 0, 1, 5, 6, 7, 8, 9, 12 = true
 	// other = false
 	trueSet := []int{0, 1, 5, 6, 7, 8, 9, 12}
-	boolArray, err := common.BytesToBoolArray(rspPtr.Data(), common.CDABEndian)
+	boolArray, err := common.BytesToBoolArray(rspPtr.Data())
 	if err != nil {
 		t.Errorf("common.BytesToBoolArray failed, err:%s", err.Error())
 		return
@@ -160,7 +160,7 @@ func TestDecodeMB004(t *testing.T) {
 	// 0, 1, 2, 7, 8, 9, 13, 14, 15, 19, 20 = true
 	// other = false
 	trueSet := []int{0, 1, 2, 7, 8, 9, 13, 14, 15, 19, 20}
-	boolArray, err := common.BytesToBoolArray(rspPtr.Data(), common.CDABEndian)
+	boolArray, err := common.BytesToBoolArray(rspPtr.Data())
 	if err != nil {
 		t.Errorf("common.BytesToBoolArray failed, err:%s", err.Error())
 		return

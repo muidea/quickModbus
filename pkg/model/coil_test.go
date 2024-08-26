@@ -198,7 +198,7 @@ func TestDecodeMB001(t *testing.T) {
 	// 0,6,7,8,9 = true
 	// other = false
 	trueSet := []int{0, 6, 7, 8, 9}
-	boolArray, err := common.BytesToBoolArray(rspPtr.Data(), common.CDABEndian)
+	boolArray, err := common.BytesToBoolArray(rspPtr.Data())
 	if err != nil {
 		t.Errorf("common.BytesToBoolArray failed, err:%s", err.Error())
 		return
@@ -286,7 +286,7 @@ func TestDecodeMB002(t *testing.T) {
 	// 0,1,2,6,11,12 = true
 	// other = false
 	trueSet := []int{0, 1, 2, 6, 11, 12}
-	boolArray, err := common.BytesToBoolArray(rspPtr.Data(), common.CDABEndian)
+	boolArray, err := common.BytesToBoolArray(rspPtr.Data())
 	if err != nil {
 		t.Errorf("common.BytesToBoolArray failed, err:%s", err.Error())
 		return
@@ -427,7 +427,7 @@ func TestDecodeMB011(t *testing.T) {
 	}
 
 	valSet := []bool{true, false, true, false, true, true, true, false, false, false}
-	boolArray, err := common.BytesToBoolArray(reqPtr.Data(), common.CDABEndian)
+	boolArray, err := common.BytesToBoolArray(reqPtr.Data())
 	if err != nil {
 		t.Errorf("common.BytesToBoolArray failed, err:%s", err.Error())
 		return
