@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/hex"
+	"math"
 	"strings"
 	"testing"
 )
@@ -122,7 +123,7 @@ func TestUint16(t *testing.T) {
 		t.Errorf("BytesToUint16Array failed, missmatch len")
 		return
 	}
-	if u16Val[1] != uVal1 || u16Val[0] != uVal2 {
+	if u16Val[0] != uVal1 || u16Val[1] != uVal2 {
 		t.Errorf("BytesToUint16Array failed, missmatch item value")
 		return
 	}
@@ -216,6 +217,138 @@ func TestSwapArray(t *testing.T) {
 	valStr = strings.ToUpper(hex.EncodeToString(swapVal))
 	if badcStr != valStr {
 		t.Errorf("hex.EncodeToString failed")
+		return
+	}
+}
+
+func TestFloat32Array(t *testing.T) {
+	strVal := "42F60000436A000043AC8000"
+	byteVal, _ := hex.DecodeString(strVal)
+	fVal, fErr := BytesToFloat32Array(byteVal, ABCDEndian)
+	if fErr != nil {
+		t.Errorf("BytesToFloat32Array failed, error:%s", fErr.Error())
+		return
+	}
+	if len(fVal) != 3 {
+		t.Errorf("BytesToFloat32Array failed, mismatch len")
+		return
+	}
+	if math.Abs(float64(fVal[0])-123.000) > 0.001 || math.Abs(float64(fVal[1])-234.000) > 0.001 || math.Abs(float64(fVal[2])-345.000) > 0.001 {
+		t.Errorf("BytesToFloat32Array failed, illegal value")
+		return
+	}
+
+	strVal = "F64200006A430000AC430080"
+	byteVal, _ = hex.DecodeString(strVal)
+	fVal, fErr = BytesToFloat32Array(byteVal, BADCEndian)
+	if fErr != nil {
+		t.Errorf("BytesToFloat32Array failed, error:%s", fErr.Error())
+		return
+	}
+	if len(fVal) != 3 {
+		t.Errorf("BytesToFloat32Array failed, mismatch len")
+		return
+	}
+	if math.Abs(float64(fVal[0])-123.000) > 0.001 || math.Abs(float64(fVal[1])-234.000) > 0.001 || math.Abs(float64(fVal[2])-345.000) > 0.001 {
+		t.Errorf("BytesToFloat32Array failed, illegal value")
+		return
+	}
+
+	strVal = "000042F60000436A800043AC"
+	byteVal, _ = hex.DecodeString(strVal)
+	fVal, fErr = BytesToFloat32Array(byteVal, CDABEndian)
+	if fErr != nil {
+		t.Errorf("BytesToFloat32Array failed, error:%s", fErr.Error())
+		return
+	}
+	if len(fVal) != 3 {
+		t.Errorf("BytesToFloat32Array failed, mismatch len")
+		return
+	}
+	if math.Abs(float64(fVal[0])-123.000) > 0.001 || math.Abs(float64(fVal[1])-234.000) > 0.001 || math.Abs(float64(fVal[2])-345.000) > 0.001 {
+		t.Errorf("BytesToFloat32Array failed, illegal value")
+		return
+	}
+
+	strVal = "0000F64200006A430080AC43"
+	byteVal, _ = hex.DecodeString(strVal)
+	fVal, fErr = BytesToFloat32Array(byteVal, DCBAEndian)
+	if fErr != nil {
+		t.Errorf("BytesToFloat32Array failed, error:%s", fErr.Error())
+		return
+	}
+	if len(fVal) != 3 {
+		t.Errorf("BytesToFloat32Array failed, mismatch len")
+		return
+	}
+	if math.Abs(float64(fVal[0])-123.000) > 0.001 || math.Abs(float64(fVal[1])-234.000) > 0.001 || math.Abs(float64(fVal[2])-345.000) > 0.001 {
+		t.Errorf("BytesToFloat32Array failed, illegal value")
+		return
+	}
+}
+
+func TestFloat64Array(t *testing.T) {
+	strVal := "405EC00000000000406D4000000000004075900000000000"
+	byteVal, _ := hex.DecodeString(strVal)
+	fVal, fErr := BytesToFloat64Array(byteVal, ABCDEndian)
+	if fErr != nil {
+		t.Errorf("BytesToFloat64Array failed, error:%s", fErr.Error())
+		return
+	}
+	if len(fVal) != 3 {
+		t.Errorf("BytesToFloat64Array failed, mismatch len")
+		return
+	}
+	if math.Abs(fVal[0]-123.000) > 0.001 || math.Abs(fVal[1]-234.000) > 0.001 || math.Abs(fVal[2]-345.000) > 0.001 {
+		t.Errorf("BytesToFloat64Array failed, illegal value")
+		return
+	}
+
+	strVal = "5E4000C0000000006D400040000000007540009000000000"
+	byteVal, _ = hex.DecodeString(strVal)
+	fVal, fErr = BytesToFloat64Array(byteVal, BADCEndian)
+	if fErr != nil {
+		t.Errorf("BytesToFloat64Array failed, error:%s", fErr.Error())
+		return
+	}
+	if len(fVal) != 3 {
+		t.Errorf("BytesToFloat64Array failed, mismatch len")
+		return
+	}
+	if math.Abs(fVal[0]-123.000) > 0.001 || math.Abs(fVal[1]-234.000) > 0.001 || math.Abs(fVal[2]-345.000) > 0.001 {
+		t.Errorf("BytesToFloat64Array failed, illegal value")
+		return
+	}
+
+	strVal = "00000000C000405E000000004000406D0000000090004075"
+	byteVal, _ = hex.DecodeString(strVal)
+	fVal, fErr = BytesToFloat64Array(byteVal, CDABEndian)
+	if fErr != nil {
+		t.Errorf("BytesToFloat64Array failed, error:%s", fErr.Error())
+		return
+	}
+	if len(fVal) != 3 {
+		t.Errorf("BytesToFloat64Array failed, mismatch len")
+		return
+	}
+	if math.Abs(fVal[0]-123.000) > 0.001 || math.Abs(fVal[1]-234.000) > 0.001 || math.Abs(fVal[2]-345.000) > 0.001 {
+		t.Errorf("BytesToFloat64Array failed, illegal value")
+		return
+	}
+
+	strVal = "0000000000C05E400000000000406D400000000000907540"
+	byteVal, _ = hex.DecodeString(strVal)
+	fVal, fErr = BytesToFloat64Array(byteVal, DCBAEndian)
+	if fErr != nil {
+		t.Errorf("BytesToFloat64Array failed, error:%s", fErr.Error())
+		return
+	}
+	if len(fVal) != 3 {
+		t.Errorf("BytesToFloat64Array failed, mismatch len")
+		return
+	}
+	if math.Abs(fVal[0]-123.000) > 0.001 || math.Abs(fVal[1]-234.000) > 0.001 || math.Abs(fVal[2]-345.000) > 0.001 {
+		t.Errorf("BytesToFloat64Array failed, illegal value")
 		return
 	}
 }

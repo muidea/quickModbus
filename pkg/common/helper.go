@@ -6,6 +6,37 @@ import (
 	"math"
 )
 
+func swapArrayFor64Bits[T any](valArray []T, endianType uint16) (ret []T, err error) {
+	if len(valArray) < 8 {
+		ret = valArray
+		return
+	}
+
+	swappedVal := make([]T, len(valArray))
+	copy(swappedVal, valArray)
+
+	switch endianType {
+	case ABCDEndian, BADCEndian:
+	// No change needed for abcd,badc
+	case CDABEndian, DCBAEndian:
+		for i := 0; i+7 < len(valArray); i += 8 {
+			swappedVal[i], swappedVal[i+1], swappedVal[i+2], swappedVal[i+3], swappedVal[i+4], swappedVal[i+5], swappedVal[i+6], swappedVal[i+7] =
+				valArray[i+4], valArray[i+5], valArray[i+6], valArray[i+7], valArray[i], valArray[i+1], valArray[i+2], valArray[i+3]
+		}
+	default:
+		errMsg := fmt.Sprintf("illegal endianType, endianType:%v", endianType)
+		err = fmt.Errorf(errMsg)
+		log.Errorf("swapArrayFor64Bits failed, error:%s", errMsg)
+	}
+
+	if err != nil {
+		return
+	}
+
+	ret = swappedVal
+	return
+}
+
 func swapArray[T any](valArray []T, endianType uint16) (ret []T, err error) {
 	if len(valArray) < 4 {
 		ret = valArray
@@ -57,51 +88,22 @@ func checkArray[T any](arrayVal []T, lenVal int) []T {
 }
 
 func BytesToBoolArray(byteVal []byte, endianType uint16) (ret []bool, err error) {
-	/*
-		byteVal, err = swapArray(byteVal, endianType)
-		if err != nil {
-			log.Errorf("BytesToBoolArray failed, error:%s", err.Error())
-			return
-		}
-	*/
 	ret = bytesToBoolArray(byteVal)
 	return
 }
 
 func AppendBoolArray(byteVal []byte, boolVal []bool, endianType uint16) (ret []byte, err error) {
 	bytes := boolArrayToByteArray(boolVal)
-	/*
-		bytes, err = swapArray(bytes, endianType)
-		if err != nil {
-			log.Errorf("AppendBoolArray failed, error:%s", err.Error())
-			return
-		}
-	*/
 	ret = append(byteVal, bytes...)
 	return
 }
 
 func BytesToUint16(byteVal []byte, endianType uint16) (ret uint16, err error) {
-	/*
-		byteVal, err = swapArray(byteVal, endianType)
-		if err != nil {
-			log.Errorf("BytesToUint16 failed, error:%s", err.Error())
-			return
-		}
-	*/
 	ret, err = bytesToUint16(byteVal)
 	return
 }
 
 func BytesToUint16Array(byteVal []byte, endianType uint16) (ret []uint16, err error) {
-	/*
-		byteVal, err = swapArray(byteVal, endianType)
-		if err != nil {
-			log.Errorf("BytesToUint16Array failed, error:%s", err.Error())
-			return
-		}
-	*/
-
 	for idx := 0; idx < len(byteVal); idx += 2 {
 		uVal, uErr := bytesToUint16(byteVal[idx : idx+2])
 		if uErr != nil {
@@ -117,38 +119,16 @@ func BytesToUint16Array(byteVal []byte, endianType uint16) (ret []uint16, err er
 
 func AppendUint16(byteVal []byte, uVal, endianType uint16) (ret []byte, err error) {
 	bytes := uint16ToByteArray(uVal)
-	/*
-		bytes, err = swapArray(bytes, endianType)
-		if err != nil {
-			log.Errorf("AppendUint16 failed, error:%s", err.Error())
-			return
-		}
-	*/
 	ret = append(byteVal, bytes...)
 	return
 }
 
 func BytesToInt16(byteVal []byte, endianType uint16) (ret int16, err error) {
-	/*
-		byteVal, err = swapArray(byteVal, endianType)
-		if err != nil {
-			log.Errorf("BytesToInt16 failed, error:%s", err.Error())
-			return
-		}
-	*/
 	ret, err = bytesToInt16(byteVal)
 	return
 }
 
 func BytesToInt16Array(byteVal []byte, endianType uint16) (ret []int16, err error) {
-	/*
-		byteVal, err = swapArray(byteVal, endianType)
-		if err != nil {
-			log.Errorf("BytesToInt16Array failed, error:%s", err.Error())
-			return
-		}
-	*/
-
 	for idx := 0; idx < len(byteVal); idx += 2 {
 		iVal, iErr := bytesToInt16(byteVal[idx : idx+2])
 		if iErr != nil {
@@ -164,13 +144,6 @@ func BytesToInt16Array(byteVal []byte, endianType uint16) (ret []int16, err erro
 
 func AppendInt16(byteVal []byte, iVal int16, endianType uint16) (ret []byte, err error) {
 	bytes := int16ToByteArray(iVal)
-	/*
-		bytes, err = swapArray(bytes, endianType)
-		if err != nil {
-			log.Errorf("AppendInt16 failed, error:%s", err.Error())
-			return
-		}
-	*/
 	ret = append(byteVal, bytes...)
 	return
 }
@@ -262,7 +235,13 @@ func AppendInt32(byteVal []byte, iVal int32, endianType uint16) (ret []byte, err
 func BytesToUint64(byteVal []byte, endianType uint16) (ret uint64, err error) {
 	byteVal, err = swapArray(byteVal, endianType)
 	if err != nil {
-		log.Errorf("BytesToUint64 failed, error:%s", err.Error())
+		log.Errorf("BytesToUint64 failed, swapArray error:%s", err.Error())
+		return
+	}
+
+	byteVal, err = swapArrayFor64Bits(byteVal, endianType)
+	if err != nil {
+		log.Errorf("BytesToUint64 failed, swapArrayFor64Bits error:%s", err.Error())
 		return
 	}
 
@@ -273,9 +252,16 @@ func BytesToUint64(byteVal []byte, endianType uint16) (ret uint64, err error) {
 func BytesToUint64Array(byteVal []byte, endianType uint16) (ret []uint64, err error) {
 	byteVal, err = swapArray(byteVal, endianType)
 	if err != nil {
-		log.Errorf("BytesToUint64Array failed, error:%s", err.Error())
+		log.Errorf("BytesToUint64Array failed, swapArray error:%s", err.Error())
 		return
 	}
+
+	byteVal, err = swapArrayFor64Bits(byteVal, endianType)
+	if err != nil {
+		log.Errorf("BytesToUint64Array failed, swapArrayFor64Bits error:%s", err.Error())
+		return
+	}
+
 	for idx := 0; idx < len(byteVal); idx += 8 {
 		uVal, uErr := bytesToUint64(byteVal[idx : idx+8])
 		if uErr != nil {
@@ -293,7 +279,12 @@ func AppendUint64(byteVal []byte, uVal uint64, endianType uint16) (ret []byte, e
 	bytes := uint64ToByteArray(uVal)
 	bytes, err = swapArray(bytes, endianType)
 	if err != nil {
-		log.Errorf("AppendUint64 failed, error:%s", err.Error())
+		log.Errorf("AppendUint64 failed, swapArray error:%s", err.Error())
+		return
+	}
+	byteVal, err = swapArrayFor64Bits(byteVal, endianType)
+	if err != nil {
+		log.Errorf("AppendUint64 failed, swapArrayFor64Bits error:%s", err.Error())
 		return
 	}
 
@@ -304,7 +295,13 @@ func AppendUint64(byteVal []byte, uVal uint64, endianType uint16) (ret []byte, e
 func BytesToInt64(byteVal []byte, endianType uint16) (ret int64, err error) {
 	byteVal, err = swapArray(byteVal, endianType)
 	if err != nil {
-		log.Errorf("BytesToInt64 failed, error:%s", err.Error())
+		log.Errorf("BytesToInt64 failed, swapArray error:%s", err.Error())
+		return
+	}
+
+	byteVal, err = swapArrayFor64Bits(byteVal, endianType)
+	if err != nil {
+		log.Errorf("BytesToInt64 failed, swapArrayFor64Bits error:%s", err.Error())
 		return
 	}
 
@@ -318,6 +315,12 @@ func BytesToInt64Array(byteVal []byte, endianType uint16) (ret []int64, err erro
 		log.Errorf("BytesToInt64Array failed, error:%s", err.Error())
 		return
 	}
+	byteVal, err = swapArrayFor64Bits(byteVal, endianType)
+	if err != nil {
+		log.Errorf("BytesToInt64Array failed, swapArrayFor64Bits error:%s", err.Error())
+		return
+	}
+
 	for idx := 0; idx < len(byteVal); idx += 8 {
 		iVal, iErr := bytesToInt64(byteVal[idx : idx+8])
 		if iErr != nil {
@@ -335,7 +338,12 @@ func AppendInt64(byteVal []byte, iVal int64, endianType uint16) (ret []byte, err
 	bytes := int64ToByteArray(iVal)
 	bytes, err = swapArray(bytes, endianType)
 	if err != nil {
-		log.Errorf("AppendInt64 failed, error:%s", err.Error())
+		log.Errorf("AppendInt64 failed, swapArray error:%s", err.Error())
+		return
+	}
+	byteVal, err = swapArrayFor64Bits(byteVal, endianType)
+	if err != nil {
+		log.Errorf("AppendInt64 failed, swapArrayFor64Bits error:%s", err.Error())
 		return
 	}
 
@@ -350,6 +358,7 @@ func BytesToFloat32(byteVal []byte, endianType uint16) (ret float32, err error) 
 		return
 	}
 
+	ret, err = bytesToFloat32(byteVal)
 	return
 }
 
@@ -387,19 +396,31 @@ func AppendFloat32(byteVal []byte, fVal float32, endianType uint16) (ret []byte,
 func BytesToFloat64(byteVal []byte, endianType uint16) (ret float64, err error) {
 	byteVal, err = swapArray(byteVal, endianType)
 	if err != nil {
-		log.Errorf("BytesToFloat64 failed, error:%s", err.Error())
+		log.Errorf("BytesToFloat64 failed, swapArray error:%s", err.Error())
+		return
+	}
+	byteVal, err = swapArrayFor64Bits(byteVal, endianType)
+	if err != nil {
+		log.Errorf("BytesToFloat64 failed, swapArrayFor64Bits error:%s", err.Error())
 		return
 	}
 
+	ret, err = bytesToFloat64(byteVal)
 	return
 }
 
 func BytesToFloat64Array(byteVal []byte, endianType uint16) (ret []float64, err error) {
 	byteVal, err = swapArray(byteVal, endianType)
 	if err != nil {
-		log.Errorf("BytesToFloat64Array failed, error:%s", err.Error())
+		log.Errorf("BytesToFloat64Array failed, swapArray error:%s", err.Error())
 		return
 	}
+	byteVal, err = swapArrayFor64Bits(byteVal, endianType)
+	if err != nil {
+		log.Errorf("BytesToFloat64Array failed, swapArrayFor64Bits error:%s", err.Error())
+		return
+	}
+
 	for idx := 0; idx < len(byteVal); idx += 8 {
 		fVal, rErr := bytesToFloat64(byteVal[idx : idx+8])
 		if rErr != nil {
@@ -417,7 +438,12 @@ func AppendFloat64(byteVal []byte, fVal float64, endianType uint16) (ret []byte,
 	bytes := float64ToByteArray(fVal)
 	bytes, err = swapArray(bytes, endianType)
 	if err != nil {
-		log.Errorf("AppendFloat64 failed, error:%s", err.Error())
+		log.Errorf("AppendFloat64 failed, swapArray error:%s", err.Error())
+		return
+	}
+	byteVal, err = swapArrayFor64Bits(byteVal, endianType)
+	if err != nil {
+		log.Errorf("AppendFloat64 failed, swapArrayFor64Bits error:%s", err.Error())
 		return
 	}
 
@@ -634,14 +660,14 @@ func bytesToFloat64(byteVal []byte) (float64, error) {
 	byteVal = checkArray(byteVal, sizeVal)
 
 	_ = byteVal[7]
-	u64Val := uint64(byteVal[3]) |
-		uint64(byteVal[2])<<8 |
-		uint64(byteVal[1])<<16 |
-		uint64(byteVal[0])<<24 |
-		uint64(byteVal[7])<<32 |
-		uint64(byteVal[6])<<40 |
-		uint64(byteVal[5])<<48 |
-		uint64(byteVal[4])<<56
+	u64Val := uint64(byteVal[7]) |
+		uint64(byteVal[6])<<8 |
+		uint64(byteVal[5])<<16 |
+		uint64(byteVal[4])<<24 |
+		uint64(byteVal[3])<<32 |
+		uint64(byteVal[2])<<40 |
+		uint64(byteVal[1])<<48 |
+		uint64(byteVal[0])<<56
 	return math.Float64frombits(u64Val), nil
 }
 
