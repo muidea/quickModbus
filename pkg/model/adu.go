@@ -274,15 +274,15 @@ func decodeResponsePDU(reader io.Reader) (MBTcpHeader, MBProtocol, byte) {
 		return nil, nil, err
 	}
 	var exceptionCode byte
-	hMask := funcCode[0] & 0xF0
-	lCode := funcCode[0] & 0x0F
-	if hMask == 0x80 {
+	lCode := funcCode[0]
+	if funcCode[0] > 0x80 {
 		exceptionRsp := EmptyExceptionRsp()
 		err = exceptionRsp.DecodePayload(reader)
 		if err != SuccessCode {
 			return nil, nil, err
 		}
 		exceptionCode = exceptionRsp.ExceptionCode()
+		lCode = funcCode[0] - 0x80
 	}
 	var protocol MBProtocol
 	switch lCode {
@@ -329,7 +329,7 @@ func decodeResponsePDU(reader io.Reader) (MBTcpHeader, MBProtocol, byte) {
 	if err != SuccessCode {
 		return nil, nil, err
 	}
-	if hMask != 0x80 {
+	if funcCode[0] < 0x80 {
 		err = protocol.DecodePayload(reader)
 		if err != SuccessCode {
 			return nil, nil, err

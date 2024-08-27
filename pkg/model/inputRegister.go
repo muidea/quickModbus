@@ -641,7 +641,7 @@ func (s *MBWriteMultipleRegistersReq) EncodePayload(writer io.Writer) (err byte)
 		return
 	}
 	wSize, wErr = writer.Write(s.dataVal)
-	if wErr != nil || wSize != 5 {
+	if wErr != nil || wSize != len(s.dataVal) {
 		err = IllegalAddress
 		return
 	}
