@@ -149,7 +149,7 @@ func (s *MBReadHoldingRegistersReq) Count() uint16 {
 
 func NewReadHoldingRegistersRsp(data []byte) *MBReadHoldingRegistersRsp {
 	return &MBReadHoldingRegistersRsp{
-		data: data,
+		dataVal: data,
 	}
 }
 
@@ -161,7 +161,7 @@ func EmptyReadHoldingRegistersRsp(exceptionCode byte) *MBReadHoldingRegistersRsp
 
 type MBReadHoldingRegistersRsp struct {
 	exceptionCode byte
-	data          []byte
+	dataVal       []byte
 }
 
 func (s *MBReadHoldingRegistersRsp) FuncCode() byte {
@@ -181,15 +181,15 @@ func (s *MBReadHoldingRegistersRsp) Encode(writer io.Writer) (err byte) {
 
 	buffVal := make([]byte, 0)
 	buffVal = append(buffVal, s.FuncCode())
-	buffVal = append(buffVal, byte(len(s.data)))
+	buffVal = append(buffVal, byte(len(s.dataVal)))
 	wSize, wErr := writer.Write(buffVal)
 	if wErr != nil || wSize != 2 {
 		err = IllegalAddress
 		return
 	}
 
-	wSize, wErr = writer.Write(s.data)
-	if wErr != nil || wSize != len(s.data) {
+	wSize, wErr = writer.Write(s.dataVal)
+	if wErr != nil || wSize != len(s.dataVal) {
 		err = IllegalAddress
 		return
 	}
@@ -222,12 +222,12 @@ func (s *MBReadHoldingRegistersRsp) Decode(reader io.Reader) (err byte) {
 		return
 	}
 
-	s.data = dataVal
+	s.dataVal = dataVal
 	return
 }
 
 func (s *MBReadHoldingRegistersRsp) CalcLen() uint16 {
-	return uint16(len(s.data)) + 2
+	return uint16(len(s.dataVal)) + 2
 }
 
 func (s *MBReadHoldingRegistersRsp) EncodePayload(writer io.Writer) (err byte) {
@@ -237,14 +237,14 @@ func (s *MBReadHoldingRegistersRsp) EncodePayload(writer io.Writer) (err byte) {
 		}
 	}()
 
-	wSize, wErr := writer.Write([]byte{byte(len(s.data))})
+	wSize, wErr := writer.Write([]byte{byte(len(s.dataVal))})
 	if wErr != nil || wSize != 1 {
 		err = IllegalAddress
 		return
 	}
 
-	wSize, wErr = writer.Write(s.data)
-	if wErr != nil || wSize != len(s.data) {
+	wSize, wErr = writer.Write(s.dataVal)
+	if wErr != nil || wSize != len(s.dataVal) {
 		err = IllegalAddress
 		return
 	}
@@ -272,14 +272,14 @@ func (s *MBReadHoldingRegistersRsp) DecodePayload(reader io.Reader) (err byte) {
 		return
 	}
 
-	s.data = dataVal
+	s.dataVal = dataVal
 	return
 }
 
 func (s *MBReadHoldingRegistersRsp) CalcPayloadLen() uint16 {
-	return uint16(len(s.data)) + 1
+	return uint16(len(s.dataVal)) + 1
 }
 
 func (s *MBReadHoldingRegistersRsp) Data() []byte {
-	return s.data
+	return s.dataVal
 }

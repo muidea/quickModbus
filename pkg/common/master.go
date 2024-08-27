@@ -122,9 +122,8 @@ type WriteSingleCoilResponse struct {
 }
 
 type WriteSingleRegisterRequest struct {
-	Address   uint16  `json:"address"`
-	Value     float64 `json:"value"`
-	ValueType uint16  `json:"valueType"`
+	Address uint16 `json:"address"`
+	Value   uint16 `json:"value"`
 }
 
 type WriteSingleRegisterResponse struct {
@@ -240,30 +239,30 @@ type WriteFileRecordResponse struct {
 }
 
 type MaskWriteRegisterRequest struct {
-	Address int    `json:"address"`
-	AndMask []bool `json:"andMask"`
-	OrMask  []bool `json:"orMask"`
+	Address uint16 `json:"address"`
+	AndMask uint16 `json:"andMask"`
+	OrMask  uint16 `json:"orMask"`
 }
 
 type MaskWriteRegisterResponse struct {
 	cd.Result
-	ExceptionCode byte   `json:"exceptionCode"`
-	Address       int    `json:"address"`
-	AndMask       []bool `json:"andMask"`
-	OrMask        []bool `json:"orMask"`
+	ExceptionCode byte `json:"exceptionCode"`
 }
 
 type ReadWriteMultipleRegistersRequest struct {
-	ReadAddress  int           `json:"readAddress"`
-	ReadCount    int           `json:"readCount"`
-	WriteAddress int           `json:"writeAddress"`
-	WriteValues  []interface{} `json:"writeValues"`
-	ValueType    int           `json:"valueType"`
+	ReadAddress    uint16    `json:"readAddress"`
+	ReadCount      uint16    `json:"readCount"`
+	ReadValueType  uint16    `json:"readValueType"`
+	WriteAddress   uint16    `json:"writeAddress"`
+	WriteValues    []float64 `json:"writeValues"`
+	WriteValueType uint16    `json:"writeValueType"`
+	EndianType     uint16    `json:"endianType"`
 }
 
 type ReadWriteMultipleRegistersResponse struct {
 	cd.Result
-	ExceptionCode byte `json:"exceptionCode"`
+	ExceptionCode byte        `json:"exceptionCode"`
+	Values        interface{} `json:"values"`
 }
 
 type ReadFIFOQueueRequest struct {

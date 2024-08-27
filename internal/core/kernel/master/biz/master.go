@@ -32,7 +32,10 @@ func (s *MBMaster) reset() {
 }
 
 func (s *MBMaster) connect(serverAddr string) (ret tcp.Client, err error) {
-	s.signalGard.PutSignal(s.serialNo)
+	err = s.signalGard.PutSignal(s.serialNo)
+	if err != nil {
+		return
+	}
 
 	client := tcp.NewClient(s)
 	err = client.Connect(serverAddr)
@@ -108,13 +111,13 @@ func (s *MBMaster) OnRecvData(ep tcp.Endpoint, data []byte) {
 	dataVal := bytes.NewBuffer(data)
 	protocolHeader, protocolVal, protocolErr := model.DecodeMBProtocol(dataVal, model.ResponseAction)
 	if protocolErr != model.SuccessCode {
-		log.Errorf("decode mbprotocol failed, error:%v", protocolErr)
+		log.Errorf("decode mbprotocol failed, remoteAddr:%s, error:%v", ep.RemoteAddr().String(), protocolErr)
 		return
 	}
 
 	err := s.signalGard.TriggerSignal(int(protocolHeader.Transaction()), protocolVal)
 	if err != nil {
-		log.Errorf("onRecvData triggerSignal failed, error:%s", err.Error())
+		log.Errorf("onRecvData triggerSignal failed, remoteAddr:%s, error:%s", ep.RemoteAddr(), err.Error())
 	}
 }
 
@@ -542,11 +545,103 @@ func (s *MBMaster) WriteFileRecord() (ret []byte, err error) {
 	return
 }
 
-func (s *MBMaster) MaskWriteRegister() (ret []byte, err error) {
+func (s *MBMaster) MaskWriteRegister(address uint16, andBytes []byte, orBytes []byte) (retAddr uint16, retAnd []byte, retOr []byte, exCode byte, err error) {
+	protocol := model.NewMaskWriteRegisterReq(address, andBytes, orBytes)
+	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
+
+	buffVal := bytes.NewBuffer(nil)
+	eErr := model.EncodeMBProtocol(header, protocol, buffVal)
+	if eErr != model.SuccessCode {
+		err = fmt.Errorf("WriteMultipleRegisters,encode mbprotocol failed, error:%v", eErr)
+		log.Errorf(err.Error())
+		return
+	}
+
+	signalID := int(header.Transaction())
+	err = s.signalGard.PutSignal(signalID)
+	if err != nil {
+		log.Errorf("WriteMultipleRegisters,signalGard.PutSignal failed, error:%s", err.Error())
+		return
+	}
+	byteVal := buffVal.Bytes()
+	err = s.tcpClient.SendData(byteVal)
+	if err != nil {
+		log.Errorf("WriteMultipleRegisters,tcpClient.SendData failed, error:%s", err.Error())
+		return
+	}
+
+	recvVal, recvErr := s.signalGard.WaitSignal(signalID, defaultTimeOut)
+	if recvErr != nil {
+		err = recvErr
+		log.Errorf("WriteMultipleRegisters failed, error:%s", err.Error())
+		return
+	}
+	if recvVal == nil {
+		err = fmt.Errorf("recv illegal data")
+		log.Errorf("WriteMultipleRegisters failed, error:%s", err.Error())
+		return
+	}
+
+	readVal, readOK := recvVal.(*model.MBMaskWriteRegisterRsp)
+	if !readOK {
+		err = fmt.Errorf("recv illegal write multiple registers response")
+		log.Errorf("WriteMultipleRegisters failed, error:%s", err.Error())
+		return
+	}
+
+	retAddr = readVal.Address()
+	retAnd = readVal.AndMask()
+	retOr = readVal.OrMask()
+	exCode = readVal.ExceptionCode()
 	return
 }
 
-func (s *MBMaster) ReadWriteMultipleRegisters() (ret []byte, err error) {
+func (s *MBMaster) ReadWriteMultipleRegisters(readAddr, readCount uint16, writeAddr, writeCount uint16, writeData []byte) (retData []byte, exCode byte, err error) {
+	protocol := model.NewReadWriteMultipleRegistersReq(readAddr, readCount, writeAddr, writeCount, writeData)
+	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
+
+	buffVal := bytes.NewBuffer(nil)
+	eErr := model.EncodeMBProtocol(header, protocol, buffVal)
+	if eErr != model.SuccessCode {
+		err = fmt.Errorf("ReadWriteMultipleRegisters,encode mbprotocol failed, error:%v", eErr)
+		log.Errorf(err.Error())
+		return
+	}
+
+	signalID := int(header.Transaction())
+	err = s.signalGard.PutSignal(signalID)
+	if err != nil {
+		log.Errorf("ReadWriteMultipleRegisters,signalGard.PutSignal failed, error:%s", err.Error())
+		return
+	}
+	byteVal := buffVal.Bytes()
+	err = s.tcpClient.SendData(byteVal)
+	if err != nil {
+		log.Errorf("ReadWriteMultipleRegisters,tcpClient.SendData failed, error:%s", err.Error())
+		return
+	}
+
+	recvVal, recvErr := s.signalGard.WaitSignal(signalID, defaultTimeOut)
+	if recvErr != nil {
+		err = recvErr
+		log.Errorf("ReadWriteMultipleRegisters failed, error:%s", err.Error())
+		return
+	}
+	if recvVal == nil {
+		err = fmt.Errorf("recv illegal data")
+		log.Errorf("ReadWriteMultipleRegisters failed, error:%s", err.Error())
+		return
+	}
+
+	readVal, readOK := recvVal.(*model.MBReadWriteMultipleRegistersRsp)
+	if !readOK {
+		err = fmt.Errorf("recv illegal read&write multiple registers response")
+		log.Errorf("ReadWriteMultipleRegisters failed, error:%s", err.Error())
+		return
+	}
+
+	retData = readVal.Data()
+	exCode = readVal.ExceptionCode()
 	return
 }
 

@@ -298,7 +298,7 @@ func (s *Master) WriteSingleRegister(ctx context.Context, res http.ResponseWrite
 			break
 		}
 		slaveID := ctx.Value(slaveIDContextKey).(string)
-		writeExCode, writeErr := s.bizPtr.WriteSingleRegister(slaveID, param.Address, param.Value, param.ValueType)
+		writeExCode, writeErr := s.bizPtr.WriteSingleRegister(slaveID, param.Address, param.Value)
 		result.ExceptionCode = writeExCode
 		if writeErr != nil {
 			log.Errorf("WriteSingleRegister failed, slaveID:%s, address:%d, exCode:%v, error:%s", slaveID, param.Address, writeExCode, writeErr.Error())
@@ -412,11 +412,68 @@ func (s *Master) WriteFileRecord(ctx context.Context, res http.ResponseWriter, r
 }
 
 func (s *Master) MaskWriteRegister(ctx context.Context, res http.ResponseWriter, req *http.Request) {
+	result := &common.MaskWriteRegisterResponse{}
+	for {
+		param := &common.MaskWriteRegisterRequest{}
+		err := fn.ParseJSONBody(req, nil, param)
+		if err != nil {
+			result.ErrorCode = cd.IllegalParam
+			result.Reason = "invalid param"
+			break
+		}
+		slaveID := ctx.Value(slaveIDContextKey).(string)
+		writeExCode, writeErr := s.bizPtr.MaskWriteRegister(slaveID, param.Address, param.AndMask, param.OrMask)
+		result.ExceptionCode = writeExCode
+		if writeErr != nil {
+			log.Errorf("MaskWriteRegister failed, slaveID:%s, address:%d, exCode:%v, error:%s", slaveID, param.Address, writeExCode, writeErr.Error())
+			result.Result = *writeErr
+			break
+		}
 
+		result.ErrorCode = cd.Succeeded
+		break
+	}
+
+	block, err := json.Marshal(result)
+	if err == nil {
+		_, _ = res.Write(block)
+		return
+	}
+
+	res.WriteHeader(http.StatusExpectationFailed)
 }
 
 func (s *Master) ReadWriteMultipleRegisters(ctx context.Context, res http.ResponseWriter, req *http.Request) {
+	result := &common.ReadWriteMultipleRegistersResponse{}
+	for {
+		param := &common.ReadWriteMultipleRegistersRequest{}
+		err := fn.ParseJSONBody(req, nil, param)
+		if err != nil {
+			result.ErrorCode = cd.IllegalParam
+			result.Reason = "invalid param"
+			break
+		}
+		slaveID := ctx.Value(slaveIDContextKey).(string)
+		retValues, retExCode, retErr := s.bizPtr.ReadWriteMultipleRegisters(slaveID, param.ReadAddress, param.ReadCount, param.ReadValueType, param.WriteAddress, param.WriteValues, param.WriteValueType, param.EndianType)
+		result.ExceptionCode = retExCode
+		if retErr != nil {
+			log.Errorf("ReadWriteMultipleRegisters failed, slaveID:%s, exCode:%v, error:%s", slaveID, retExCode, retErr.Error())
+			result.Result = *retErr
+			break
+		}
 
+		result.Values = retValues
+		result.ErrorCode = cd.Succeeded
+		break
+	}
+
+	block, err := json.Marshal(result)
+	if err == nil {
+		_, _ = res.Write(block)
+		return
+	}
+
+	res.WriteHeader(http.StatusExpectationFailed)
 }
 
 func (s *Master) ReadFIFOQueue(ctx context.Context, res http.ResponseWriter, req *http.Request) {
