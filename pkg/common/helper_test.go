@@ -352,3 +352,18 @@ func TestFloat64Array(t *testing.T) {
 		return
 	}
 }
+
+func TestBytesToInt64Array(t *testing.T) {
+	strVal := strings.ReplaceAll("00 00 00 00 00 00 00 0C 00 00 00 00 00 00 00 22 00 00 00 00 00 00 00 38 00 00 00 00 00 00 00 4E 00 00 00 00 00 00 00 5A", " ", "")
+	byteVal, _ := hex.DecodeString(strVal)
+
+	i64Val, i64Err := BytesToInt64Array(byteVal, ABCDEndian)
+	if i64Err != nil {
+		t.Errorf("BytesToInt64Array failed, error:%s", i64Err.Error())
+		return
+	}
+	if len(i64Val) != 5 {
+		t.Errorf("BytesToInt64Array failed, mismatch len")
+		return
+	}
+}
