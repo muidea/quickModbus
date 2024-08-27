@@ -21,7 +21,7 @@ type Observer interface {
 	OnRecvData(ep Endpoint, data []byte)
 }
 
-func NewEndpoint(conn net.Conn, ob Observer, executePtr *execute.Execute) *endpointImpl {
+func newEndpoint(conn net.Conn, ob Observer, executePtr *execute.Execute) *endpointImpl {
 	ptr := &endpointImpl{
 		connVal:    conn,
 		observer:   ob,
@@ -90,7 +90,7 @@ func (s *endpointImpl) RecvData() (err error) {
 	for {
 		readSize, readErr := reader.Read(buffer)
 		if readErr != nil {
-			log.Errorf("recv data failed")
+			log.Errorf("recv data failed, error:%s", readErr.Error())
 			err = readErr
 			break
 		}

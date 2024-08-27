@@ -42,7 +42,7 @@ github.com/muidea/magicCommon/foundation/util
 github.com/muidea/magicCommon/module
 github.com/muidea/magicCommon/service
 github.com/muidea/magicCommon/task
-# github.com/muidea/magicEngine v1.3.8
+# github.com/muidea/magicEngine v1.3.9
 ## explicit; go 1.19
 github.com/muidea/magicEngine/http
 github.com/muidea/magicEngine/tcp
