@@ -6,6 +6,7 @@ import (
 	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicCommon/foundation/signal"
 	"github.com/muidea/magicEngine/tcp"
+	"github.com/muidea/quickModbus/pkg/common"
 	"github.com/muidea/quickModbus/pkg/model"
 )
 
@@ -517,27 +518,257 @@ func (s *MBMaster) WriteMultipleRegisters(address, count uint16, data []byte) (r
 	return
 }
 
-func (s *MBMaster) ReadExceptionStatus() (ret []byte, err error) {
+func (s *MBMaster) ReadExceptionStatus() (retStatus, exCode byte, err error) {
+	protocol := model.NewReadExceptionStatusReq()
+	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
+
+	buffVal := bytes.NewBuffer(nil)
+	eErr := model.EncodeMBProtocol(header, protocol, buffVal)
+	if eErr != model.SuccessCode {
+		err = fmt.Errorf("ReadExceptionStatus,encode mbprotocol failed, error:%v", eErr)
+		log.Errorf(err.Error())
+		return
+	}
+
+	signalID := int(header.Transaction())
+	err = s.signalGard.PutSignal(signalID)
+	if err != nil {
+		log.Errorf("ReadExceptionStatus,signalGard.PutSignal failed, error:%s", err.Error())
+		return
+	}
+	byteVal := buffVal.Bytes()
+	err = s.tcpClient.SendData(byteVal)
+	if err != nil {
+		log.Errorf("ReadExceptionStatus,tcpClient.SendData failed, error:%s", err.Error())
+		return
+	}
+
+	recvVal, recvErr := s.signalGard.WaitSignal(signalID, defaultTimeOut)
+	if recvErr != nil {
+		err = recvErr
+		log.Errorf("ReadExceptionStatus failed, error:%s", err.Error())
+		return
+	}
+	if recvVal == nil {
+		err = fmt.Errorf("recv illegal data")
+		log.Errorf("ReadExceptionStatus failed, error:%s", err.Error())
+		return
+	}
+
+	readVal, readOK := recvVal.(*model.MBReadExceptionStatusRsp)
+	if !readOK {
+		err = fmt.Errorf("recv illegal read exception status response")
+		log.Errorf("ReadExceptionStatus failed, error:%s", err.Error())
+		return
+	}
+
+	exCode = readVal.ExceptionCode()
+	retStatus = readVal.Status()
 	return
 }
 
-func (s *MBMaster) Diagnostics() (ret []byte, err error) {
+func (s *MBMaster) Diagnostics(subFuncCode uint16, data []byte) (retSubFuncCode uint16, retData []byte, exCode byte, err error) {
+	protocol := model.NewDiagnosticsReq(subFuncCode, data)
+	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
+
+	buffVal := bytes.NewBuffer(nil)
+	eErr := model.EncodeMBProtocol(header, protocol, buffVal)
+	if eErr != model.SuccessCode {
+		err = fmt.Errorf("diagnostics, encode mbprotocol failed, error:%v", eErr)
+		log.Errorf(err.Error())
+		return
+	}
+
+	signalID := int(header.Transaction())
+	err = s.signalGard.PutSignal(signalID)
+	if err != nil {
+		log.Errorf("diagnostics,signalGard.PutSignal failed, error:%s", err.Error())
+		return
+	}
+	byteVal := buffVal.Bytes()
+	err = s.tcpClient.SendData(byteVal)
+	if err != nil {
+		log.Errorf("diagnostics,tcpClient.SendData failed, error:%s", err.Error())
+		return
+	}
+
+	recvVal, recvErr := s.signalGard.WaitSignal(signalID, defaultTimeOut)
+	if recvErr != nil {
+		err = recvErr
+		log.Errorf("diagnostics failed, error:%s", err.Error())
+		return
+	}
+	if recvVal == nil {
+		err = fmt.Errorf("recv illegal data")
+		log.Errorf("diagnostics failed, error:%s", err.Error())
+		return
+	}
+
+	readVal, readOK := recvVal.(*model.MBDiagnosticsRsp)
+	if !readOK {
+		err = fmt.Errorf("recv illegal write multiple registers response")
+		log.Errorf("diagnostics failed, error:%s", err.Error())
+		return
+	}
+
+	retSubFuncCode = readVal.SubFunctionCode()
+	retData = readVal.Data()
+	exCode = readVal.ExceptionCode()
 	return
 }
 
-func (s *MBMaster) GetCommEventCounter() (ret []byte, err error) {
+func (s *MBMaster) GetCommEventCounter() (status uint16, eventCount uint16, exCode byte, err error) {
+	protocol := model.NewGetCommEventCounterReq()
+	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
+
+	buffVal := bytes.NewBuffer(nil)
+	eErr := model.EncodeMBProtocol(header, protocol, buffVal)
+	if eErr != model.SuccessCode {
+		err = fmt.Errorf("GetCommEventCounter encode mbprotocol failed, error:%v", eErr)
+		log.Errorf(err.Error())
+		return
+	}
+
+	signalID := int(header.Transaction())
+	err = s.signalGard.PutSignal(signalID)
+	if err != nil {
+		log.Errorf("GetCommEventCounter signalGard.PutSignal failed, error:%s", err.Error())
+		return
+	}
+	byteVal := buffVal.Bytes()
+	err = s.tcpClient.SendData(byteVal)
+	if err != nil {
+		log.Errorf("GetCommEventCounter tcpClient.SendData failed, error:%s", err.Error())
+		return
+	}
+
+	recvVal, recvErr := s.signalGard.WaitSignal(signalID, defaultTimeOut)
+	if recvErr != nil {
+		err = recvErr
+		log.Errorf("GetCommEventCounter failed, error:%s", err.Error())
+		return
+	}
+	if recvVal == nil {
+		err = fmt.Errorf("recv illegal data")
+		log.Errorf("GetCommEventCounter failed, error:%s", err.Error())
+		return
+	}
+
+	readVal, readOK := recvVal.(*model.MBGetCommEventCounterRsp)
+	if !readOK {
+		err = fmt.Errorf("recv illegal write multiple registers response")
+		log.Errorf("GetCommEventCounter failed, error:%s", err.Error())
+		return
+	}
+
+	status = readVal.CommStatus()
+	eventCount = readVal.EventCount()
+	exCode = readVal.ExceptionCode()
 	return
 }
 
-func (s *MBMaster) GetCommEventLog() (ret []byte, err error) {
+func (s *MBMaster) GetCommEventLog() (status uint16, eventCount, messageCount uint16, events []byte, exCode byte, err error) {
+	protocol := model.NewGetCommEventLogReq()
+	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
+
+	buffVal := bytes.NewBuffer(nil)
+	eErr := model.EncodeMBProtocol(header, protocol, buffVal)
+	if eErr != model.SuccessCode {
+		err = fmt.Errorf("GetCommEventCounter encode mbprotocol failed, error:%v", eErr)
+		log.Errorf(err.Error())
+		return
+	}
+
+	signalID := int(header.Transaction())
+	err = s.signalGard.PutSignal(signalID)
+	if err != nil {
+		log.Errorf("GetCommEventCounter signalGard.PutSignal failed, error:%s", err.Error())
+		return
+	}
+	byteVal := buffVal.Bytes()
+	err = s.tcpClient.SendData(byteVal)
+	if err != nil {
+		log.Errorf("GetCommEventCounter tcpClient.SendData failed, error:%s", err.Error())
+		return
+	}
+
+	recvVal, recvErr := s.signalGard.WaitSignal(signalID, defaultTimeOut)
+	if recvErr != nil {
+		err = recvErr
+		log.Errorf("GetCommEventCounter failed, error:%s", err.Error())
+		return
+	}
+	if recvVal == nil {
+		err = fmt.Errorf("recv illegal data")
+		log.Errorf("GetCommEventCounter failed, error:%s", err.Error())
+		return
+	}
+
+	readVal, readOK := recvVal.(*model.MBGetCommEventLogRsp)
+	if !readOK {
+		err = fmt.Errorf("recv illegal write multiple registers response")
+		log.Errorf("GetCommEventCounter failed, error:%s", err.Error())
+		return
+	}
+
+	status = readVal.CommStatus()
+	eventCount = readVal.EventCount()
+	messageCount = readVal.MessageCount()
+	events = readVal.CommonEvents()
+	exCode = readVal.ExceptionCode()
 	return
 }
 
-func (s *MBMaster) ReportServerID() (ret []byte, err error) {
+func (s *MBMaster) ReportSlaveID() (ret []byte, exCode byte, err error) {
+	protocol := model.NewReportSlaveIDReq()
+	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
+
+	buffVal := bytes.NewBuffer(nil)
+	eErr := model.EncodeMBProtocol(header, protocol, buffVal)
+	if eErr != model.SuccessCode {
+		err = fmt.Errorf("ReportSlaveID encode mbprotocol failed, error:%v", eErr)
+		log.Errorf(err.Error())
+		return
+	}
+
+	signalID := int(header.Transaction())
+	err = s.signalGard.PutSignal(signalID)
+	if err != nil {
+		log.Errorf("ReportSlaveID signalGard.PutSignal failed, error:%s", err.Error())
+		return
+	}
+	byteVal := buffVal.Bytes()
+	err = s.tcpClient.SendData(byteVal)
+	if err != nil {
+		log.Errorf("ReportSlaveID tcpClient.SendData failed, error:%s", err.Error())
+		return
+	}
+
+	recvVal, recvErr := s.signalGard.WaitSignal(signalID, defaultTimeOut)
+	if recvErr != nil {
+		err = recvErr
+		log.Errorf("ReportSlaveID failed, error:%s", err.Error())
+		return
+	}
+	if recvVal == nil {
+		err = fmt.Errorf("recv illegal data")
+		log.Errorf("ReportSlaveID failed, error:%s", err.Error())
+		return
+	}
+
+	readVal, readOK := recvVal.(*model.MBReportSlaveIDRsp)
+	if !readOK {
+		err = fmt.Errorf("recv illegal write multiple registers response")
+		log.Errorf("ReportSlaveID failed, error:%s", err.Error())
+		return
+	}
+
+	exCode = readVal.ExceptionCode()
+	ret = readVal.SlaveIDInfo()
 	return
 }
 
-func (s *MBMaster) ReadFileRecord() (ret []byte, err error) {
+func (s *MBMaster) ReadFileRecord(items []*common.ReadItem) (ret []byte, exCode byte, err error) {
 	return
 }
 

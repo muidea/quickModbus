@@ -43,13 +43,13 @@ func (s *Master) RegisterRoute() {
 	s.routeRegistry.AddHandler(common.ReadInputRegisters, engine.POST, s.ReadInputRegisters, s)
 	s.routeRegistry.AddHandler(common.WriteSingleCoil, engine.POST, s.WriteSingleCoil, s)
 	s.routeRegistry.AddHandler(common.WriteSingleRegister, engine.POST, s.WriteSingleRegister, s)
-	s.routeRegistry.AddHandler(common.ReadExceptionStatus, engine.POST, s.ReadExceptionStatus, s)
+	s.routeRegistry.AddHandler(common.ReadExceptionStatus, engine.GET, s.ReadExceptionStatus, s)
 	s.routeRegistry.AddHandler(common.Diagnostics, engine.POST, s.Diagnostics, s)
-	s.routeRegistry.AddHandler(common.GetCommEventCounter, engine.POST, s.GetCommEventCounter, s)
-	s.routeRegistry.AddHandler(common.GetCommEventLog, engine.POST, s.GetCommEventLog, s)
+	s.routeRegistry.AddHandler(common.GetCommEventCounter, engine.GET, s.GetCommEventCounter, s)
+	s.routeRegistry.AddHandler(common.GetCommEventLog, engine.GET, s.GetCommEventLog, s)
 	s.routeRegistry.AddHandler(common.WriteMultipleCoils, engine.POST, s.WriteMultipleCoils, s)
 	s.routeRegistry.AddHandler(common.WriteMultipleRegisters, engine.POST, s.WriteMultipleRegisters, s)
-	s.routeRegistry.AddHandler(common.ReportSlaveID, engine.POST, s.ReportSlaveID, s)
+	s.routeRegistry.AddHandler(common.ReportSlaveID, engine.GET, s.ReportSlaveID, s)
 	s.routeRegistry.AddHandler(common.ReadFileRecord, engine.POST, s.ReadFileRecord, s)
 	s.routeRegistry.AddHandler(common.WriteFileRecord, engine.POST, s.WriteFileRecord, s)
 	s.routeRegistry.AddHandler(common.MaskWriteRegister, engine.POST, s.MaskWriteRegister, s)
@@ -320,19 +320,118 @@ func (s *Master) WriteSingleRegister(ctx context.Context, res http.ResponseWrite
 }
 
 func (s *Master) ReadExceptionStatus(ctx context.Context, res http.ResponseWriter, req *http.Request) {
+	result := &common.ReadExceptionStatusResponse{}
+	for {
+		slaveID := ctx.Value(slaveIDContextKey).(string)
+		readStatus, readExCode, readErr := s.bizPtr.ReadExceptionStatus(slaveID)
+		result.ExceptionCode = readExCode
+		if readErr != nil {
+			log.Errorf("ReadExceptionStatus failed, slaveID:%s, exCode:%v, error:%s", slaveID, readExCode, readErr.Error())
+			result.Result = *readErr
+			break
+		}
 
+		result.Status = readStatus
+		result.ErrorCode = cd.Succeeded
+		break
+	}
+
+	block, err := json.Marshal(result)
+	if err == nil {
+		_, _ = res.Write(block)
+		return
+	}
+
+	res.WriteHeader(http.StatusExpectationFailed)
 }
 
 func (s *Master) Diagnostics(ctx context.Context, res http.ResponseWriter, req *http.Request) {
+	result := &common.DiagnosticsResponse{}
+	for {
+		param := &common.DiagnosticsRequest{}
+		err := fn.ParseJSONBody(req, nil, param)
+		if err != nil {
+			result.ErrorCode = cd.IllegalParam
+			result.Reason = "invalid param"
+			break
+		}
+		slaveID := ctx.Value(slaveIDContextKey).(string)
+		retVal, retExCode, retErr := s.bizPtr.Diagnostics(slaveID, param.Function, param.Value)
+		result.ExceptionCode = retExCode
+		if retErr != nil {
+			log.Errorf("Diagnostics failed, slaveID:%s, exCode:%v, error:%s", slaveID, retExCode, retErr.Error())
+			result.Result = *retErr
+			break
+		}
 
+		result.Value = retVal
+		result.ErrorCode = cd.Succeeded
+		break
+	}
+
+	block, err := json.Marshal(result)
+	if err == nil {
+		_, _ = res.Write(block)
+		return
+	}
+
+	res.WriteHeader(http.StatusExpectationFailed)
 }
 
 func (s *Master) GetCommEventCounter(ctx context.Context, res http.ResponseWriter, req *http.Request) {
+	result := &common.GetCommEventCounterResponse{}
+	for {
+		slaveID := ctx.Value(slaveIDContextKey).(string)
+		readStatus, readEventCount, readExCode, readErr := s.bizPtr.GetCommEventCounter(slaveID)
+		result.ExceptionCode = readExCode
+		if readErr != nil {
+			log.Errorf("GetCommEventCounter failed, slaveID:%s, exCode:%v, error:%s", slaveID, readExCode, readErr.Error())
+			result.Result = *readErr
+			break
+		}
 
+		result.CommStatus = readStatus
+		result.EventCount = readEventCount
+		result.ErrorCode = cd.Succeeded
+		break
+	}
+
+	block, err := json.Marshal(result)
+	if err == nil {
+		_, _ = res.Write(block)
+		return
+	}
+
+	res.WriteHeader(http.StatusExpectationFailed)
 }
 
 func (s *Master) GetCommEventLog(ctx context.Context, res http.ResponseWriter, req *http.Request) {
+	result := &common.GetCommEventLogResponse{}
+	for {
+		slaveID := ctx.Value(slaveIDContextKey).(string)
+		readStatus, readEventCount, readMessageCount, readEvents, readExCode, readErr := s.bizPtr.GetCommEventLog(slaveID)
+		result.ExceptionCode = readExCode
+		if readErr != nil {
+			log.Errorf("GetCommEventLog failed, slaveID:%s, exCode:%v, error:%s", slaveID, readExCode, readErr.Error())
+			result.Result = *readErr
+			break
+		}
 
+		result.CommStatus = readStatus
+		result.EventCount = readEventCount
+		result.MessageCount = readMessageCount
+		result.CommEvents = readEvents
+		result.ErrorCode = cd.Succeeded
+		break
+	}
+
+	block, err := json.Marshal(result)
+	if err == nil {
+		_, _ = res.Write(block)
+		return
+	}
+
+	res.WriteHeader(http.StatusExpectationFailed)
 }
 
 func (s *Master) WriteMultipleCoils(ctx context.Context, res http.ResponseWriter, req *http.Request) {
@@ -400,7 +499,29 @@ func (s *Master) WriteMultipleRegisters(ctx context.Context, res http.ResponseWr
 }
 
 func (s *Master) ReportSlaveID(ctx context.Context, res http.ResponseWriter, req *http.Request) {
+	result := &common.ReportSlaveIDResponse{}
+	for {
+		slaveID := ctx.Value(slaveIDContextKey).(string)
+		readSlaveInfo, readExCode, readErr := s.bizPtr.ReportSlaveID(slaveID)
+		result.ExceptionCode = readExCode
+		if readErr != nil {
+			log.Errorf("GetCommEventLog failed, slaveID:%s, exCode:%v, error:%s", slaveID, readExCode, readErr.Error())
+			result.Result = *readErr
+			break
+		}
 
+		result.SlaveID = readSlaveInfo
+		result.ErrorCode = cd.Succeeded
+		break
+	}
+
+	block, err := json.Marshal(result)
+	if err == nil {
+		_, _ = res.Write(block)
+		return
+	}
+
+	res.WriteHeader(http.StatusExpectationFailed)
 }
 
 func (s *Master) ReadFileRecord(ctx context.Context, res http.ResponseWriter, req *http.Request) {

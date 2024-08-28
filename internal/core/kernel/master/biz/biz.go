@@ -2,6 +2,7 @@ package biz
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 
 	cd "github.com/muidea/magicCommon/def"
@@ -755,4 +756,206 @@ func (s *Master) prepareWriteData(values []float64, valueType uint16, endianType
 	}
 
 	return writeByteVal, writeCount, nil
+}
+
+func (s *Master) ReadExceptionStatus(slaveID string) (status, exCode byte, err *cd.Result) {
+	vVal := s.slaveInfoCache.Fetch(slaveID)
+	if vVal == nil {
+		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
+		log.Errorf("ReadExceptionStatus failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	mbMasterPtr := vVal.(*MBMaster)
+	if !mbMasterPtr.IsConnect() {
+		connErr := mbMasterPtr.ReConnect()
+		if connErr != nil {
+			log.Errorf("ReadExceptionStatus failed, reconnect slave error:%s", connErr.Error())
+			err = cd.NewError(cd.UnExpected, connErr.Error())
+			return
+		}
+	}
+
+	retVal, retExCode, retErr := mbMasterPtr.ReadExceptionStatus()
+	if retErr != nil {
+		log.Errorf("ReadExceptionStatus failed, error:%s", retErr.Error())
+		err = cd.NewError(cd.UnExpected, retErr.Error())
+		return
+	}
+	if retExCode != model.SuccessCode {
+		exCode = retExCode
+		errMsg := fmt.Sprintf("modbus exception code:%v", retExCode)
+		log.Errorf("ReadExceptionStatus failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	status = retVal
+	return
+}
+
+func (s *Master) Diagnostics(slaveID string, subFuncCode uint16, dataVal string) (ret string, exCode byte, err *cd.Result) {
+	vVal := s.slaveInfoCache.Fetch(slaveID)
+	if vVal == nil {
+		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
+		log.Errorf("Diagnostics failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	mbMasterPtr := vVal.(*MBMaster)
+	if !mbMasterPtr.IsConnect() {
+		connErr := mbMasterPtr.ReConnect()
+		if connErr != nil {
+			log.Errorf("Diagnostics failed, reconnect slave error:%s", connErr.Error())
+			err = cd.NewError(cd.UnExpected, connErr.Error())
+			return
+		}
+	}
+
+	byteVal, byteErr := hex.DecodeString(dataVal)
+	if byteErr != nil {
+		log.Errorf("Diagnostics failed, hex.DecodeString error:%s", byteErr.Error())
+		err = cd.NewError(cd.UnExpected, byteErr.Error())
+		return
+	}
+
+	retSubFuncCode, retDataVal, retExCode, retErr := mbMasterPtr.Diagnostics(subFuncCode, byteVal)
+	if retErr != nil {
+		log.Errorf("ReadExceptionStatus failed, error:%s", retErr.Error())
+		err = cd.NewError(cd.UnExpected, retErr.Error())
+		return
+	}
+	if retExCode != model.SuccessCode {
+		exCode = retExCode
+		errMsg := fmt.Sprintf("modbus exception code:%v", retExCode)
+		log.Errorf("ReadExceptionStatus failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+	if retSubFuncCode != subFuncCode {
+		errMsg := fmt.Sprintf("mismatch subfunction code, request:%v response:%v", subFuncCode, retSubFuncCode)
+		log.Errorf("ReadExceptionStatus failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	ret = hex.EncodeToString(retDataVal)
+	return
+}
+
+func (s *Master) GetCommEventCounter(slaveID string) (status, eventCount uint16, exCode byte, err *cd.Result) {
+	vVal := s.slaveInfoCache.Fetch(slaveID)
+	if vVal == nil {
+		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
+		log.Errorf("GetCommEventCounter failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	mbMasterPtr := vVal.(*MBMaster)
+	if !mbMasterPtr.IsConnect() {
+		connErr := mbMasterPtr.ReConnect()
+		if connErr != nil {
+			log.Errorf("GetCommEventCounter failed, reconnect slave error:%s", connErr.Error())
+			err = cd.NewError(cd.UnExpected, connErr.Error())
+			return
+		}
+	}
+
+	retStatus, retEventCount, retExCode, retErr := mbMasterPtr.GetCommEventCounter()
+	if retErr != nil {
+		log.Errorf("GetCommEventCounter failed, error:%s", retErr.Error())
+		err = cd.NewError(cd.UnExpected, retErr.Error())
+		return
+	}
+	if retExCode != model.SuccessCode {
+		exCode = retExCode
+		errMsg := fmt.Sprintf("modbus exception code:%v", retExCode)
+		log.Errorf("GetCommEventCounter failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	status = retStatus
+	eventCount = retEventCount
+	return
+}
+
+func (s *Master) GetCommEventLog(slaveID string) (status, eventCount, messageCount uint16, events string, exCode byte, err *cd.Result) {
+	vVal := s.slaveInfoCache.Fetch(slaveID)
+	if vVal == nil {
+		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
+		log.Errorf("GetCommEventLog failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	mbMasterPtr := vVal.(*MBMaster)
+	if !mbMasterPtr.IsConnect() {
+		connErr := mbMasterPtr.ReConnect()
+		if connErr != nil {
+			log.Errorf("GetCommEventLog failed, reconnect slave error:%s", connErr.Error())
+			err = cd.NewError(cd.UnExpected, connErr.Error())
+			return
+		}
+	}
+
+	retStatus, retEventCount, retMessageCount, retEvents, retExCode, retErr := mbMasterPtr.GetCommEventLog()
+	if retErr != nil {
+		log.Errorf("GetCommEventLog failed, error:%s", retErr.Error())
+		err = cd.NewError(cd.UnExpected, retErr.Error())
+		return
+	}
+	if retExCode != model.SuccessCode {
+		exCode = retExCode
+		errMsg := fmt.Sprintf("modbus exception code:%v", retExCode)
+		log.Errorf("GetCommEventLog failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	status = retStatus
+	eventCount = retEventCount
+	messageCount = retMessageCount
+	events = hex.EncodeToString(retEvents)
+	return
+}
+
+func (s *Master) ReportSlaveID(slaveID string) (ret string, exCode byte, err *cd.Result) {
+	vVal := s.slaveInfoCache.Fetch(slaveID)
+	if vVal == nil {
+		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
+		log.Errorf("ReportSlaveID failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	mbMasterPtr := vVal.(*MBMaster)
+	if !mbMasterPtr.IsConnect() {
+		connErr := mbMasterPtr.ReConnect()
+		if connErr != nil {
+			log.Errorf("ReportSlaveID failed, reconnect slave error:%s", connErr.Error())
+			err = cd.NewError(cd.UnExpected, connErr.Error())
+			return
+		}
+	}
+
+	retSlaveInfo, retExCode, retErr := mbMasterPtr.ReportSlaveID()
+	if retErr != nil {
+		log.Errorf("ReportSlaveID failed, error:%s", retErr.Error())
+		err = cd.NewError(cd.UnExpected, retErr.Error())
+		return
+	}
+	if retExCode != model.SuccessCode {
+		exCode = retExCode
+		errMsg := fmt.Sprintf("modbus exception code:%v", retExCode)
+		log.Errorf("ReportSlaveID failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	ret = hex.EncodeToString(retSlaveInfo)
+	return
 }

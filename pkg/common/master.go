@@ -136,8 +136,8 @@ type ReadExceptionStatusRequest struct {
 
 type ReadExceptionStatusResponse struct {
 	cd.Result
-	ExceptionCode byte        `json:"exceptionCode"`
-	Value         interface{} `json:"value"`
+	ExceptionCode byte `json:"exceptionCode"`
+	Status        byte `json:"status"`
 }
 
 type DiagnosticsRequest struct {
@@ -148,7 +148,6 @@ type DiagnosticsRequest struct {
 type DiagnosticsResponse struct {
 	cd.Result
 	ExceptionCode byte   `json:"exceptionCode"`
-	Function      uint16 `json:"function"`
 	Value         string `json:"value"`
 }
 
@@ -167,11 +166,11 @@ type GetCommEventLogRequest struct {
 
 type GetCommEventLogResponse struct {
 	cd.Result
-	ExceptionCode byte `json:"exceptionCode"`
-	CommStatus    int  `json:"commStatus"`
-	EventCount    int  `json:"eventCount"`
-	MessageCount  int  `json:"messageCount"`
-	CommEvents    int  `json:"commEvents"`
+	ExceptionCode byte   `json:"exceptionCode"`
+	CommStatus    uint16 `json:"commStatus"`
+	EventCount    uint16 `json:"eventCount"`
+	MessageCount  uint16 `json:"messageCount"`
+	CommEvents    string `json:"commEvents"`
 }
 
 type WriteMultipleCoilsRequest struct {
@@ -201,15 +200,14 @@ type ReportSlaveIDRequest struct {
 
 type ReportSlaveIDResponse struct {
 	cd.Result
-	ExceptionCode   byte   `json:"exceptionCode"`
-	SlaveID         string `json:"slaveID"`
-	IndicatorStatus int    `json:"indicatorStatus"`
+	ExceptionCode byte   `json:"exceptionCode"`
+	SlaveID       string `json:"slaveID"`
 }
 
 type ReadItem struct {
-	FileNumber   int `json:"fileNumber"`
-	RecordNumber int `json:"recordNumber"`
-	RecordLength int `json:"recordLength"`
+	FileNumber   uint16 `json:"fileNumber"`
+	RecordNumber uint16 `json:"recordNumber"`
+	RecordLength uint16 `json:"recordLength"`
 }
 
 type ReadFileRecordRequest struct {
@@ -223,8 +221,8 @@ type ReadFileRecordResponse struct {
 }
 
 type WriteItem struct {
-	FileNumber   int    `json:"fileNumber"`
-	RecordNumber int    `json:"recordNumber"`
+	FileNumber   uint16 `json:"fileNumber"`
+	RecordNumber uint16 `json:"recordNumber"`
 	RecordData   string `json:"recordData"`
 }
 

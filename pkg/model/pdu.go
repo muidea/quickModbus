@@ -62,7 +62,7 @@ func (s *MBReadExceptionStatusReq) Decode(reader io.Reader) (err byte) {
 }
 
 func (s *MBReadExceptionStatusReq) CalcLen() uint16 {
-	return 0
+	return 1
 }
 
 func (s *MBReadExceptionStatusReq) EncodePayload(_ io.Writer) (err byte) {
@@ -151,7 +151,7 @@ func (s *MBReadExceptionStatusRsp) Decode(reader io.Reader) (err byte) {
 }
 
 func (s *MBReadExceptionStatusRsp) CalcLen() uint16 {
-	return 0
+	return 2
 }
 
 func (s *MBReadExceptionStatusRsp) EncodePayload(writer io.Writer) (err byte) {
@@ -188,15 +188,18 @@ func (s *MBReadExceptionStatusRsp) DecodePayload(reader io.Reader) (err byte) {
 }
 
 func (s *MBReadExceptionStatusRsp) CalcPayloadLen() uint16 {
-	return 0
+	return 1
 }
 
 func (s *MBReadExceptionStatusRsp) Status() byte {
 	return s.statusVal
 }
 
-func NewDiagnosticsReq() *MBDiagnosticsReq {
-	return &MBDiagnosticsReq{}
+func NewDiagnosticsReq(subFuncCode uint16, data []byte) *MBDiagnosticsReq {
+	return &MBDiagnosticsReq{
+		subFuncCode: subFuncCode,
+		dataVal:     data,
+	}
 }
 
 func EmptyDiagnosticsReq() *MBDiagnosticsReq {
@@ -204,8 +207,8 @@ func EmptyDiagnosticsReq() *MBDiagnosticsReq {
 }
 
 type MBDiagnosticsReq struct {
-	dataFunction uint16
-	dataVal      []byte
+	subFuncCode uint16
+	dataVal     []byte
 }
 
 func (s *MBDiagnosticsReq) FuncCode() byte {
@@ -219,13 +222,12 @@ func (s *MBDiagnosticsReq) Encode(writer io.Writer) (err byte) {
 		}
 	}()
 
-	buffSize := 5
 	buffVal := make([]byte, 0)
 	buffVal = append(buffVal, s.FuncCode())
-	buffVal = binary.BigEndian.AppendUint16(buffVal, s.dataFunction)
+	buffVal = binary.BigEndian.AppendUint16(buffVal, s.subFuncCode)
 	buffVal = append(buffVal, s.dataVal[0:2]...)
 	wSize, wErr := writer.Write(buffVal)
-	if wErr != nil || wSize != buffSize {
+	if wErr != nil || wSize != 5 {
 		err = IllegalAddress
 		return
 	}
@@ -250,13 +252,13 @@ func (s *MBDiagnosticsReq) Decode(reader io.Reader) (err byte) {
 		return
 	}
 
-	s.dataFunction = binary.BigEndian.Uint16(dataVal[1:3])
+	s.subFuncCode = binary.BigEndian.Uint16(dataVal[1:3])
 	s.dataVal = dataVal[3:5]
 	return
 }
 
 func (s *MBDiagnosticsReq) CalcLen() uint16 {
-	return 0
+	return 5
 }
 
 func (s *MBDiagnosticsReq) EncodePayload(writer io.Writer) (err byte) {
@@ -266,12 +268,11 @@ func (s *MBDiagnosticsReq) EncodePayload(writer io.Writer) (err byte) {
 		}
 	}()
 
-	buffSize := 4
 	buffVal := make([]byte, 0)
-	buffVal = binary.BigEndian.AppendUint16(buffVal, s.dataFunction)
+	buffVal = binary.BigEndian.AppendUint16(buffVal, s.subFuncCode)
 	buffVal = append(buffVal, s.dataVal[0:2]...)
 	wSize, wErr := writer.Write(buffVal)
-	if wErr != nil || wSize != buffSize {
+	if wErr != nil || wSize != 4 {
 		err = IllegalAddress
 		return
 	}
@@ -290,19 +291,20 @@ func (s *MBDiagnosticsReq) DecodePayload(reader io.Reader) (err byte) {
 		err = IllegalAddress
 		return
 	}
-
-	s.dataFunction = binary.BigEndian.Uint16(dataVal[0:2])
+	s.subFuncCode = binary.BigEndian.Uint16(dataVal[0:2])
 	s.dataVal = dataVal[2:4]
-
 	return
 }
 
 func (s *MBDiagnosticsReq) CalcPayloadLen() uint16 {
-	return 0
+	return 4
 }
 
-func NewDiagnosticsRsp() *MBDiagnosticsRsp {
-	return &MBDiagnosticsRsp{}
+func NewDiagnosticsRsp(subFuncCode uint16, data []byte) *MBDiagnosticsRsp {
+	return &MBDiagnosticsRsp{
+		subFuncCode: subFuncCode,
+		dataVal:     data,
+	}
 }
 
 func EmptyDiagnosticsRsp(exceptionCode byte) *MBDiagnosticsRsp {
@@ -313,7 +315,7 @@ func EmptyDiagnosticsRsp(exceptionCode byte) *MBDiagnosticsRsp {
 
 type MBDiagnosticsRsp struct {
 	exceptionCode byte
-	dataFunction  uint16
+	subFuncCode   uint16
 	dataVal       []byte
 }
 
@@ -332,13 +334,12 @@ func (s *MBDiagnosticsRsp) Encode(writer io.Writer) (err byte) {
 		}
 	}()
 
-	buffSize := 5
 	buffVal := make([]byte, 0)
 	buffVal = append(buffVal, s.FuncCode())
-	buffVal = binary.BigEndian.AppendUint16(buffVal, s.dataFunction)
+	buffVal = binary.BigEndian.AppendUint16(buffVal, s.subFuncCode)
 	buffVal = append(buffVal, s.dataVal[0:2]...)
 	wSize, wErr := writer.Write(buffVal)
-	if wErr != nil || wSize != buffSize {
+	if wErr != nil || wSize != 5 {
 		err = IllegalAddress
 		return
 	}
@@ -357,19 +358,19 @@ func (s *MBDiagnosticsRsp) Decode(reader io.Reader) (err byte) {
 		err = IllegalAddress
 		return
 	}
-	funcCode := dataVal[0]
-	if funcCode != s.FuncCode() {
+	funCode := dataVal[0]
+	if funCode != s.FuncCode() {
 		err = IllegalData
 		return
 	}
 
-	s.dataFunction = binary.BigEndian.Uint16(dataVal[1:3])
+	s.subFuncCode = binary.BigEndian.Uint16(dataVal[1:3])
 	s.dataVal = dataVal[3:5]
 	return
 }
 
 func (s *MBDiagnosticsRsp) CalcLen() uint16 {
-	return 0
+	return 5
 }
 
 func (s *MBDiagnosticsRsp) EncodePayload(writer io.Writer) (err byte) {
@@ -379,12 +380,11 @@ func (s *MBDiagnosticsRsp) EncodePayload(writer io.Writer) (err byte) {
 		}
 	}()
 
-	buffSize := 4
-	buffVal := make([]byte, buffSize)
-	buffVal = binary.BigEndian.AppendUint16(buffVal, s.dataFunction)
+	buffVal := make([]byte, 0)
+	buffVal = binary.BigEndian.AppendUint16(buffVal, s.subFuncCode)
 	buffVal = append(buffVal, s.dataVal[0:2]...)
 	wSize, wErr := writer.Write(buffVal)
-	if wErr != nil || wSize != buffSize {
+	if wErr != nil || wSize != 4 {
 		err = IllegalAddress
 		return
 	}
@@ -403,15 +403,21 @@ func (s *MBDiagnosticsRsp) DecodePayload(reader io.Reader) (err byte) {
 		err = IllegalAddress
 		return
 	}
-
-	s.dataFunction = binary.BigEndian.Uint16(dataVal[0:2])
+	s.subFuncCode = binary.BigEndian.Uint16(dataVal[0:2])
 	s.dataVal = dataVal[2:4]
-
 	return
 }
 
 func (s *MBDiagnosticsRsp) CalcPayloadLen() uint16 {
-	return 0
+	return 4
+}
+
+func (s *MBDiagnosticsRsp) SubFunctionCode() uint16 {
+	return s.subFuncCode
+}
+
+func (s *MBDiagnosticsRsp) Data() []byte {
+	return s.dataVal
 }
 
 func NewGetCommEventCounterReq() *MBGetCommEventCounterReq {
@@ -461,7 +467,7 @@ func (s *MBGetCommEventCounterReq) Decode(reader io.Reader) (err byte) {
 }
 
 func (s *MBGetCommEventCounterReq) CalcLen() uint16 {
-	return 0
+	return 1
 }
 
 func (s *MBGetCommEventCounterReq) EncodePayload(_ io.Writer) (err byte) {
@@ -500,7 +506,7 @@ func EmptyGetCommEventCounterRsp(exceptionCode byte) *MBGetCommEventCounterRsp {
 
 type MBGetCommEventCounterRsp struct {
 	exceptionCode byte
-	commStatus    []byte
+	commStatus    uint16
 	eventCount    uint16
 }
 
@@ -521,7 +527,7 @@ func (s *MBGetCommEventCounterRsp) Encode(writer io.Writer) (err byte) {
 	buffSize := 5
 	buffVal := make([]byte, 0)
 	buffVal = append(buffVal, s.FuncCode())
-	buffVal = append(buffVal, s.commStatus[0:2]...)
+	buffVal = binary.BigEndian.AppendUint16(buffVal, s.commStatus)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.eventCount)
 	wSize, wErr := writer.Write(buffVal)
 	if wErr != nil || wSize != buffSize {
@@ -546,13 +552,13 @@ func (s *MBGetCommEventCounterRsp) Decode(reader io.Reader) (err byte) {
 		return
 	}
 
-	s.commStatus = dataVal[1:3]
+	s.commStatus = binary.BigEndian.Uint16(dataVal[1:3])
 	s.eventCount = binary.BigEndian.Uint16(dataVal[3:5])
 	return
 }
 
 func (s *MBGetCommEventCounterRsp) CalcLen() uint16 {
-	return 0
+	return 5
 }
 
 func (s *MBGetCommEventCounterRsp) EncodePayload(writer io.Writer) (err byte) {
@@ -563,7 +569,7 @@ func (s *MBGetCommEventCounterRsp) EncodePayload(writer io.Writer) (err byte) {
 	}()
 	buffSize := 4
 	buffVal := make([]byte, 0)
-	buffVal = append(buffVal, s.commStatus[0:2]...)
+	buffVal = binary.BigEndian.AppendUint16(buffVal, s.commStatus)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.eventCount)
 	wSize, wErr := writer.Write(buffVal)
 	if wErr != nil || wSize != buffSize {
@@ -583,16 +589,16 @@ func (s *MBGetCommEventCounterRsp) DecodePayload(reader io.Reader) (err byte) {
 		return
 	}
 
-	s.commStatus = dataVal[0:2]
+	s.commStatus = binary.BigEndian.Uint16(dataVal[0:2])
 	s.eventCount = binary.BigEndian.Uint16(dataVal[2:4])
 	return
 }
 
 func (s *MBGetCommEventCounterRsp) CalcPayloadLen() uint16 {
-	return 0
+	return 4
 }
 
-func (s *MBGetCommEventCounterRsp) CommStatus() []byte {
+func (s *MBGetCommEventCounterRsp) CommStatus() uint16 {
 	return s.commStatus
 }
 
@@ -647,14 +653,24 @@ func (s *MBGetCommEventLogReq) Decode(reader io.Reader) (err byte) {
 }
 
 func (s *MBGetCommEventLogReq) CalcLen() uint16 {
-	return 0
+	return 1
 }
 
 func (s *MBGetCommEventLogReq) EncodePayload(_ io.Writer) (err byte) {
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = IllegalData
+		}
+	}()
 	return
 }
 
 func (s *MBGetCommEventLogReq) DecodePayload(_ io.Reader) (err byte) {
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = IllegalData
+		}
+	}()
 	return
 }
 
@@ -674,7 +690,7 @@ func EmptyGetCommEventLogRsp(exceptionCode byte) *MBGetCommEventLogRsp {
 
 type MBGetCommEventLogRsp struct {
 	exceptionCode byte
-	commStatus    []byte
+	commStatus    uint16
 	eventCount    uint16
 	messageCount  uint16
 	commonEvents  []byte
@@ -695,11 +711,11 @@ func (s *MBGetCommEventLogRsp) Encode(writer io.Writer) (err byte) {
 		}
 	}()
 
-	totalSize := byte(7 + len(s.commonEvents))
+	totalSize := byte(6 + len(s.commonEvents))
 	buffVal := make([]byte, 0)
 	buffVal = append(buffVal, s.FuncCode())
 	buffVal = append(buffVal, totalSize)
-	buffVal = append(buffVal, s.commStatus...)
+	buffVal = binary.BigEndian.AppendUint16(buffVal, s.commStatus)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.eventCount)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.messageCount)
 	wSize, wErr := writer.Write(buffVal)
@@ -725,7 +741,7 @@ func (s *MBGetCommEventLogRsp) Decode(reader io.Reader) (err byte) {
 
 	dataVal := make([]byte, 8)
 	rSize, rErr := reader.Read(dataVal)
-	if rErr != nil || rSize != 7 {
+	if rErr != nil || rSize != 8 {
 		err = IllegalAddress
 		return
 	}
@@ -735,21 +751,28 @@ func (s *MBGetCommEventLogRsp) Decode(reader io.Reader) (err byte) {
 		return
 	}
 
-	totalSize := dataVal[1]
-	if totalSize < 7 {
+	totalSize := int(dataVal[1])
+	if totalSize < 6 {
 		err = IllegalData
 		return
 	}
 
-	s.commStatus = dataVal[2:4]
+	s.commStatus = binary.BigEndian.Uint16(dataVal[2:4])
 	s.eventCount = binary.BigEndian.Uint16(dataVal[4:6])
 	s.messageCount = binary.BigEndian.Uint16(dataVal[6:8])
-	s.commonEvents = dataVal[8:totalSize]
+	dataVal = make([]byte, totalSize-6)
+	rSize, rErr = reader.Read(dataVal)
+	if rErr != nil || rSize != (totalSize-6) {
+		err = IllegalAddress
+		return
+	}
+
+	s.commonEvents = dataVal
 	return
 }
 
 func (s *MBGetCommEventLogRsp) CalcLen() uint16 {
-	return 0
+	return 8 + uint16(len(s.commonEvents))
 }
 
 func (s *MBGetCommEventLogRsp) EncodePayload(writer io.Writer) (err byte) {
@@ -759,10 +782,10 @@ func (s *MBGetCommEventLogRsp) EncodePayload(writer io.Writer) (err byte) {
 		}
 	}()
 
-	totalSize := byte(7 + len(s.commonEvents))
+	totalSize := byte(6 + len(s.commonEvents))
 	buffVal := make([]byte, 0)
 	buffVal = append(buffVal, totalSize)
-	buffVal = append(buffVal, s.commStatus...)
+	buffVal = binary.BigEndian.AppendUint16(buffVal, s.commStatus)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.eventCount)
 	buffVal = binary.BigEndian.AppendUint16(buffVal, s.messageCount)
 	wSize, wErr := writer.Write(buffVal)
@@ -792,21 +815,44 @@ func (s *MBGetCommEventLogRsp) DecodePayload(reader io.Reader) (err byte) {
 		err = IllegalAddress
 		return
 	}
-	totalSize := dataVal[0]
-	if totalSize < 7 {
+	totalSize := int(dataVal[0])
+	if totalSize < 6 {
 		err = IllegalData
 		return
 	}
 
-	s.commStatus = dataVal[1:3]
+	s.commStatus = binary.BigEndian.Uint16(dataVal[1:3])
 	s.eventCount = binary.BigEndian.Uint16(dataVal[3:5])
 	s.messageCount = binary.BigEndian.Uint16(dataVal[5:7])
-	s.commonEvents = dataVal[7:totalSize]
+	dataVal = make([]byte, totalSize-6)
+	rSize, rErr = reader.Read(dataVal)
+	if rErr != nil || rSize != (totalSize-6) {
+		err = IllegalAddress
+		return
+	}
+
+	s.commonEvents = dataVal
 	return
 }
 
 func (s *MBGetCommEventLogRsp) CalcPayloadLen() uint16 {
-	return 0
+	return 7 + uint16(len(s.commonEvents))
+}
+
+func (s *MBGetCommEventLogRsp) CommStatus() uint16 {
+	return s.commStatus
+}
+
+func (s *MBGetCommEventLogRsp) EventCount() uint16 {
+	return s.eventCount
+}
+
+func (s *MBGetCommEventLogRsp) MessageCount() uint16 {
+	return s.messageCount
+}
+
+func (s *MBGetCommEventLogRsp) CommonEvents() []byte {
+	return s.commonEvents
 }
 
 func NewReportSlaveIDReq() *MBReportSlaveIDReq {
@@ -856,14 +902,24 @@ func (s *MBReportSlaveIDReq) Decode(reader io.Reader) (err byte) {
 }
 
 func (s *MBReportSlaveIDReq) CalcLen() uint16 {
-	return 0
+	return 1
 }
 
 func (s *MBReportSlaveIDReq) EncodePayload(_ io.Writer) (err byte) {
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = IllegalData
+		}
+	}()
 	return
 }
 
 func (s *MBReportSlaveIDReq) DecodePayload(_ io.Reader) (err byte) {
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = IllegalData
+		}
+	}()
 	return
 }
 
@@ -871,8 +927,10 @@ func (s *MBReportSlaveIDReq) CalcPayloadLen() uint16 {
 	return 0
 }
 
-func NewReportSlaveIDRsp() *MBReportSlaveIDRsp {
-	return &MBReportSlaveIDRsp{}
+func NewReportSlaveIDRsp(info []byte) *MBReportSlaveIDRsp {
+	return &MBReportSlaveIDRsp{
+		slaveIDInfo: info,
+	}
 }
 
 func EmptyReportSlaveIDRsp(exceptionCode byte) *MBReportSlaveIDRsp {
@@ -882,9 +940,8 @@ func EmptyReportSlaveIDRsp(exceptionCode byte) *MBReportSlaveIDRsp {
 }
 
 type MBReportSlaveIDRsp struct {
-	exceptionCode   byte
-	slaveID         []byte
-	indicatorStatus byte
+	exceptionCode byte
+	slaveIDInfo   []byte
 }
 
 func (s *MBReportSlaveIDRsp) FuncCode() byte {
@@ -896,31 +953,121 @@ func (s *MBReportSlaveIDRsp) ExceptionCode() byte {
 }
 
 func (s *MBReportSlaveIDRsp) Encode(writer io.Writer) (err byte) {
-	panic("unsupported!")
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = IllegalData
+		}
+	}()
+
+	totalSize := byte(len(s.slaveIDInfo))
+	buffVal := make([]byte, 0)
+	buffVal = append(buffVal, s.FuncCode())
+	buffVal = append(buffVal, totalSize)
+	buffVal = append(buffVal, s.slaveIDInfo...)
+	wSize, wErr := writer.Write(buffVal)
+	if wErr != nil || wSize != len(buffVal) {
+		err = IllegalAddress
+		return
+	}
 	return
 }
 
 func (s *MBReportSlaveIDRsp) Decode(reader io.Reader) (err byte) {
-	panic("unsupported!")
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = IllegalData
+		}
+	}()
+
+	dataVal := make([]byte, 2)
+	rSize, rErr := reader.Read(dataVal)
+	if rErr != nil || rSize != 2 {
+		err = IllegalAddress
+		return
+	}
+	funcCode := dataVal[0]
+	if funcCode != s.FuncCode() {
+		err = IllegalData
+		return
+	}
+
+	totalSize := int(dataVal[1])
+	if totalSize < 1 {
+		err = IllegalData
+		return
+	}
+
+	dataVal = make([]byte, totalSize)
+	rSize, rErr = reader.Read(dataVal)
+	if rErr != nil || rSize != totalSize {
+		err = IllegalAddress
+		return
+	}
+
+	s.slaveIDInfo = dataVal
 	return
 }
 
 func (s *MBReportSlaveIDRsp) CalcLen() uint16 {
-	return 0
+	return 2 + uint16(len(s.slaveIDInfo))
 }
 
 func (s *MBReportSlaveIDRsp) EncodePayload(writer io.Writer) (err byte) {
-	panic("unsupported!")
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = IllegalData
+		}
+	}()
+
+	totalSize := byte(len(s.slaveIDInfo))
+	buffVal := make([]byte, 0)
+	buffVal = append(buffVal, totalSize)
+	buffVal = append(buffVal, s.slaveIDInfo...)
+	wSize, wErr := writer.Write(buffVal)
+	if wErr != nil || wSize != len(buffVal) {
+		err = IllegalAddress
+		return
+	}
+
 	return
 }
 
 func (s *MBReportSlaveIDRsp) DecodePayload(reader io.Reader) (err byte) {
-	panic("unsupported!")
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = IllegalData
+		}
+	}()
+
+	dataVal := make([]byte, 1)
+	rSize, rErr := reader.Read(dataVal)
+	if rErr != nil || rSize != 1 {
+		err = IllegalAddress
+		return
+	}
+	totalSize := int(dataVal[0])
+	if totalSize < 1 {
+		err = IllegalData
+		return
+	}
+
+	dataVal = make([]byte, totalSize)
+	rSize, rErr = reader.Read(dataVal)
+	if rErr != nil || rSize != totalSize {
+		err = IllegalAddress
+		return
+	}
+
+	s.slaveIDInfo = dataVal
 	return
 }
 
 func (s *MBReportSlaveIDRsp) CalcPayloadLen() uint16 {
-	return 0
+	return 1 + uint16(len(s.slaveIDInfo))
+}
+
+func (s *MBReportSlaveIDRsp) SlaveIDInfo() []byte {
+	return s.slaveIDInfo
 }
 
 func NewReadFileRecordReq() *MBReadFileRecordReq {
@@ -1063,7 +1210,7 @@ func (s *MBReadFileRecordReq) Decode(reader io.Reader) (err byte) {
 }
 
 func (s *MBReadFileRecordReq) CalcLen() uint16 {
-	return 0
+	return uint16(s.calcDataSize()) + 2
 }
 
 func (s *MBReadFileRecordReq) EncodePayload(writer io.Writer) (err byte) {
@@ -1123,7 +1270,7 @@ func (s *MBReadFileRecordReq) DecodePayload(reader io.Reader) (err byte) {
 }
 
 func (s *MBReadFileRecordReq) CalcPayloadLen() uint16 {
-	return 0
+	return uint16(s.calcDataSize()) + 1
 }
 
 func (s *MBReadFileRecordReq) AppendItem(fileNumber uint16, recordNumber uint16, recordLength uint16) {
@@ -1237,10 +1384,7 @@ func (s *MBReadFileRecordRsp) Encode(writer io.Writer) (err byte) {
 			err = IllegalData
 		}
 	}()
-	buffVal := make([]byte, 2)
-	buffVal[0] = s.FuncCode()
-	buffVal[2] = s.calcDataSize()
-	wSize, wErr := writer.Write(buffVal)
+	wSize, wErr := writer.Write([]byte{s.FuncCode(), s.calcDataSize()})
 	if wErr != nil || wSize != 2 {
 		err = IllegalAddress
 		return
@@ -1295,7 +1439,7 @@ func (s *MBReadFileRecordRsp) Decode(reader io.Reader) (err byte) {
 }
 
 func (s *MBReadFileRecordRsp) CalcLen() uint16 {
-	return 0
+	return uint16(s.calcDataSize()) + 2
 }
 
 func (s *MBReadFileRecordRsp) EncodePayload(writer io.Writer) (err byte) {
@@ -1304,9 +1448,7 @@ func (s *MBReadFileRecordRsp) EncodePayload(writer io.Writer) (err byte) {
 			err = IllegalData
 		}
 	}()
-	buffVal := make([]byte, 1)
-	buffVal[0] = s.calcDataSize()
-	wSize, wErr := writer.Write(buffVal)
+	wSize, wErr := writer.Write([]byte{s.FuncCode(), s.calcDataSize()})
 	if wErr != nil || wSize != 1 {
 		err = IllegalAddress
 		return
@@ -1356,7 +1498,7 @@ func (s *MBReadFileRecordRsp) DecodePayload(reader io.Reader) (err byte) {
 }
 
 func (s *MBReadFileRecordRsp) CalcPayloadLen() uint16 {
-	return 0
+	return uint16(s.calcDataSize()) + 1
 }
 
 func (s *MBReadFileRecordRsp) AppendItem(dataVal []byte) {
