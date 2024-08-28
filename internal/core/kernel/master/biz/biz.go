@@ -959,3 +959,117 @@ func (s *Master) ReportSlaveID(slaveID string) (ret string, exCode byte, err *cd
 	ret = hex.EncodeToString(retSlaveInfo)
 	return
 }
+
+func (s *Master) ReadFileRecord(slaveID string, items []*common.ReadItem) (ret []string, exCode byte, err *cd.Result) {
+	vVal := s.slaveInfoCache.Fetch(slaveID)
+	if vVal == nil {
+		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
+		log.Errorf("ReadFileRecord failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	mbMasterPtr := vVal.(*MBMaster)
+	if !mbMasterPtr.IsConnect() {
+		connErr := mbMasterPtr.ReConnect()
+		if connErr != nil {
+			log.Errorf("ReadFileRecord failed, reconnect slave error:%s", connErr.Error())
+			err = cd.NewError(cd.UnExpected, connErr.Error())
+			return
+		}
+	}
+
+	retFileContent, retExCode, retErr := mbMasterPtr.ReadFileRecord(items)
+	if retErr != nil {
+		log.Errorf("ReadFileRecord failed, error:%s", retErr.Error())
+		err = cd.NewError(cd.UnExpected, retErr.Error())
+		return
+	}
+	if retExCode != model.SuccessCode {
+		exCode = retExCode
+		errMsg := fmt.Sprintf("modbus exception code:%v", retExCode)
+		log.Errorf("ReadFileRecord failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	for _, val := range retFileContent {
+		ret = append(ret, hex.EncodeToString(val))
+	}
+	return
+}
+
+func (s *Master) WriteFileRecord(slaveID string, items []*common.WriteItem) (exCode byte, err *cd.Result) {
+	vVal := s.slaveInfoCache.Fetch(slaveID)
+	if vVal == nil {
+		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
+		log.Errorf("WriteFileRecord failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	mbMasterPtr := vVal.(*MBMaster)
+	if !mbMasterPtr.IsConnect() {
+		connErr := mbMasterPtr.ReConnect()
+		if connErr != nil {
+			log.Errorf("WriteFileRecord failed, reconnect slave error:%s", connErr.Error())
+			err = cd.NewError(cd.UnExpected, connErr.Error())
+			return
+		}
+	}
+
+	retExCode, retErr := mbMasterPtr.WriteFileRecord(items)
+	if retErr != nil {
+		log.Errorf("WriteFileRecord failed, error:%s", retErr.Error())
+		err = cd.NewError(cd.UnExpected, retErr.Error())
+		return
+	}
+	if retExCode != model.SuccessCode {
+		exCode = retExCode
+		errMsg := fmt.Sprintf("modbus exception code:%v", retExCode)
+		log.Errorf("WriteFileRecord failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	return
+}
+
+func (s *Master) ReadFIFOQueue(slaveID string, address uint16) (retData []string, exCode byte, err *cd.Result) {
+	vVal := s.slaveInfoCache.Fetch(slaveID)
+	if vVal == nil {
+		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
+		log.Errorf("ReadFIFOQueue failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
+	mbMasterPtr := vVal.(*MBMaster)
+	if !mbMasterPtr.IsConnect() {
+		connErr := mbMasterPtr.ReConnect()
+		if connErr != nil {
+			log.Errorf("ReadFIFOQueue failed, reconnect slave error:%s", connErr.Error())
+			err = cd.NewError(cd.UnExpected, connErr.Error())
+			return
+		}
+	}
+
+	readDataCount, readDataVal, readExCode, readErr := mbMasterPtr.ReadFIFOQueue(address)
+	if readErr != nil {
+		log.Errorf("ReadFIFOQueue failed, error:%s", readErr.Error())
+		err = cd.NewError(cd.UnExpected, readErr.Error())
+		return
+	}
+	if readExCode != model.SuccessCode {
+		exCode = readExCode
+		errMsg := fmt.Sprintf("modbus exception code:%v", readExCode)
+		log.Errorf("ReadFIFOQueue failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+	for idx := 0; idx < int(readDataCount); idx += 2 {
+		subByte := hex.EncodeToString(readDataVal[idx : idx+2])
+		retData = append(retData, subByte)
+	}
+	return
+}

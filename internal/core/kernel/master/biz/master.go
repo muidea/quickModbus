@@ -2,6 +2,7 @@ package biz
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"github.com/muidea/magicCommon/foundation/log"
 	"github.com/muidea/magicCommon/foundation/signal"
@@ -768,11 +769,123 @@ func (s *MBMaster) ReportSlaveID() (ret []byte, exCode byte, err error) {
 	return
 }
 
-func (s *MBMaster) ReadFileRecord(items []*common.ReadItem) (ret []byte, exCode byte, err error) {
+func (s *MBMaster) ReadFileRecord(items []*common.ReadItem) (ret [][]byte, exCode byte, err error) {
+	reqItems := []*model.ReadRequestItem{}
+	for _, val := range items {
+		reqItems = append(reqItems, model.NewReadRequestItem(val.FileNumber, val.RecordNumber, val.RecordLength))
+	}
+
+	protocol := model.NewReadFileRecordReq(reqItems)
+	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
+
+	buffVal := bytes.NewBuffer(nil)
+	eErr := model.EncodeMBProtocol(header, protocol, buffVal)
+	if eErr != model.SuccessCode {
+		err = fmt.Errorf("ReadFileRecord encode mbprotocol failed, error:%v", eErr)
+		log.Errorf(err.Error())
+		return
+	}
+
+	signalID := int(header.Transaction())
+	err = s.signalGard.PutSignal(signalID)
+	if err != nil {
+		log.Errorf("ReadFileRecord signalGard.PutSignal failed, error:%s", err.Error())
+		return
+	}
+	byteVal := buffVal.Bytes()
+	err = s.tcpClient.SendData(byteVal)
+	if err != nil {
+		log.Errorf("ReadFileRecord tcpClient.SendData failed, error:%s", err.Error())
+		return
+	}
+
+	recvVal, recvErr := s.signalGard.WaitSignal(signalID, defaultTimeOut)
+	if recvErr != nil {
+		err = recvErr
+		log.Errorf("ReadFileRecord failed, error:%s", err.Error())
+		return
+	}
+	if recvVal == nil {
+		err = fmt.Errorf("recv illegal data")
+		log.Errorf("ReadFileRecord failed, error:%s", err.Error())
+		return
+	}
+
+	readVal, readOK := recvVal.(*model.MBReadFileRecordRsp)
+	if !readOK {
+		err = fmt.Errorf("recv illegal read file record response")
+		log.Errorf("ReadFileRecord failed, error:%s", err.Error())
+		return
+	}
+
+	exCode = readVal.ExceptionCode()
+	for _, val := range readVal.Items() {
+		ret = append(ret, val.Data())
+	}
 	return
 }
 
-func (s *MBMaster) WriteFileRecord() (ret []byte, err error) {
+func (s *MBMaster) WriteFileRecord(items []*common.WriteItem) (exCode byte, err error) {
+	reqItems := []*model.WriteItem{}
+	for _, val := range items {
+		byteVal, byteErr := hex.DecodeString(val.RecordData)
+		if byteErr != nil {
+			err = byteErr
+			return
+		}
+
+		reqItems = append(reqItems, model.NewWriteItem(val.FileNumber, val.RecordNumber, byteVal))
+	}
+
+	protocol := model.NewWriteFileRecordReq(reqItems)
+	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
+
+	buffVal := bytes.NewBuffer(nil)
+	eErr := model.EncodeMBProtocol(header, protocol, buffVal)
+	if eErr != model.SuccessCode {
+		err = fmt.Errorf("WriteFileRecord encode mbprotocol failed, error:%v", eErr)
+		log.Errorf(err.Error())
+		return
+	}
+
+	signalID := int(header.Transaction())
+	err = s.signalGard.PutSignal(signalID)
+	if err != nil {
+		log.Errorf("WriteFileRecord signalGard.PutSignal failed, error:%s", err.Error())
+		return
+	}
+	byteVal := buffVal.Bytes()
+	err = s.tcpClient.SendData(byteVal)
+	if err != nil {
+		log.Errorf("WriteFileRecord tcpClient.SendData failed, error:%s", err.Error())
+		return
+	}
+
+	recvVal, recvErr := s.signalGard.WaitSignal(signalID, defaultTimeOut)
+	if recvErr != nil {
+		err = recvErr
+		log.Errorf("WriteFileRecord failed, error:%s", err.Error())
+		return
+	}
+	if recvVal == nil {
+		err = fmt.Errorf("recv illegal data")
+		log.Errorf("WriteFileRecord failed, error:%s", err.Error())
+		return
+	}
+
+	readVal, readOK := recvVal.(*model.MBWriteFileRecordRsp)
+	if !readOK {
+		err = fmt.Errorf("recv illegal write file record response")
+		log.Errorf("WriteFileRecord failed, error:%s", err.Error())
+		return
+	}
+
+	exCode = readVal.ExceptionCode()
+	if len(items) != len(readVal.Items()) {
+		err = fmt.Errorf("mismatch write file record item size")
+		log.Errorf("WriteFileRecord failed, error:%s", err.Error())
+		return
+	}
 	return
 }
 
@@ -876,6 +989,52 @@ func (s *MBMaster) ReadWriteMultipleRegisters(readAddr, readCount uint16, writeA
 	return
 }
 
-func (s *MBMaster) ReadFIFOQueue() (ret []byte, err error) {
+func (s *MBMaster) ReadFIFOQueue(address uint16) (retDataCount uint16, retDataVal []byte, exCode byte, err error) {
+	protocol := model.NewReadFIFOQueueReq(address)
+	header := model.NewTcpHeader(s.transaction(), protocol.CalcLen(), s.deviceID)
+
+	buffVal := bytes.NewBuffer(nil)
+	eErr := model.EncodeMBProtocol(header, protocol, buffVal)
+	if eErr != model.SuccessCode {
+		err = fmt.Errorf("ReadFIFOQueue,encode mbprotocol failed, error:%v", eErr)
+		log.Errorf(err.Error())
+		return
+	}
+
+	signalID := int(header.Transaction())
+	err = s.signalGard.PutSignal(signalID)
+	if err != nil {
+		log.Errorf("ReadFIFOQueue,signalGard.PutSignal failed, error:%s", err.Error())
+		return
+	}
+	byteVal := buffVal.Bytes()
+	err = s.tcpClient.SendData(byteVal)
+	if err != nil {
+		log.Errorf("ReadFIFOQueue,tcpClient.SendData failed, error:%s", err.Error())
+		return
+	}
+
+	recvVal, recvErr := s.signalGard.WaitSignal(signalID, defaultTimeOut)
+	if recvErr != nil {
+		err = recvErr
+		log.Errorf("ReadFIFOQueue failed, error:%s", err.Error())
+		return
+	}
+	if recvVal == nil {
+		err = fmt.Errorf("recv illegal data")
+		log.Errorf("ReadFIFOQueue failed, error:%s", err.Error())
+		return
+	}
+
+	readVal, readOK := recvVal.(*model.MBReadFIFOQueueRsp)
+	if !readOK {
+		err = fmt.Errorf("recv illegal read fifo queue response")
+		log.Errorf("ReadFIFOQueue failed, error:%s", err.Error())
+		return
+	}
+
+	retDataCount = readVal.DataCount()
+	retDataVal = readVal.Data()
+	exCode = readVal.ExceptionCode()
 	return
 }

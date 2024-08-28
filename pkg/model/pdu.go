@@ -1070,8 +1070,10 @@ func (s *MBReportSlaveIDRsp) SlaveIDInfo() []byte {
 	return s.slaveIDInfo
 }
 
-func NewReadFileRecordReq() *MBReadFileRecordReq {
-	return &MBReadFileRecordReq{}
+func NewReadFileRecordReq(items []*ReadRequestItem) *MBReadFileRecordReq {
+	return &MBReadFileRecordReq{
+		items: items,
+	}
 }
 
 func EmptyReadFileRecordReq() *MBReadFileRecordReq {
@@ -1083,6 +1085,15 @@ type ReadRequestItem struct {
 	fileNumber    uint16 // 2 bytes
 	recordNumber  uint16 // 2 bytes
 	recordLength  uint16 // 2 bytes
+}
+
+func NewReadRequestItem(fileNumber, recordNumber, recordLength uint16) *ReadRequestItem {
+	return &ReadRequestItem{
+		referenceType: byte(6),
+		fileNumber:    fileNumber,
+		recordNumber:  recordNumber,
+		recordLength:  recordLength,
+	}
 }
 
 func (s *ReadRequestItem) FileNumber() uint16 {
@@ -1365,6 +1376,10 @@ func (s *ReadResponseItem) decode(reader io.Reader) (err byte) {
 	return
 }
 
+func (s *ReadResponseItem) Data() []byte {
+	return s.recordData
+}
+
 type MBReadFileRecordRsp struct {
 	exceptionCode byte
 	items         []*ReadResponseItem
@@ -1521,8 +1536,10 @@ func (s *MBReadFileRecordRsp) calcDataSize() byte {
 	return dataSize
 }
 
-func NewWriteFileRecordReq() *MBWriteFileRecordReq {
-	return &MBWriteFileRecordReq{}
+func NewWriteFileRecordReq(items []*WriteItem) *MBWriteFileRecordReq {
+	return &MBWriteFileRecordReq{
+		items: items,
+	}
 }
 
 func EmptyWriteFileRecordReq() *MBWriteFileRecordReq {
@@ -1534,6 +1551,15 @@ type WriteItem struct {
 	fileNumber    uint16 // 2 bytes
 	recordNumber  uint16 // 2 bytes
 	recordData    []byte
+}
+
+func NewWriteItem(fileNumber, recordNumber uint16, recordData []byte) *WriteItem {
+	return &WriteItem{
+		referenceType: 6,
+		fileNumber:    fileNumber,
+		recordNumber:  recordNumber,
+		recordData:    recordData,
+	}
 }
 
 func (s *WriteItem) FileNumber() uint16 {
@@ -1679,7 +1705,7 @@ func (s *MBWriteFileRecordReq) Decode(reader io.Reader) (err byte) {
 }
 
 func (s *MBWriteFileRecordReq) CalcLen() uint16 {
-	return 0
+	return uint16(s.calcDataSize()) + 2
 }
 
 func (s *MBWriteFileRecordReq) EncodePayload(writer io.Writer) (err byte) {
@@ -1740,7 +1766,7 @@ func (s *MBWriteFileRecordReq) DecodePayload(reader io.Reader) (err byte) {
 }
 
 func (s *MBWriteFileRecordReq) CalcPayloadLen() uint16 {
-	return 0
+	return uint16(s.calcDataSize()) + 1
 }
 
 func (s *MBWriteFileRecordReq) AppendItem(fileNumber, recordNumber uint16, recordData []byte) {
@@ -2504,8 +2530,10 @@ func (s *MBReadWriteMultipleRegistersRsp) Data() []byte {
 	return s.dataVal
 }
 
-func NewReadFIFOQueueReq() *MBReadFIFOQueueReq {
-	return &MBReadFIFOQueueReq{}
+func NewReadFIFOQueueReq(address uint16) *MBReadFIFOQueueReq {
+	return &MBReadFIFOQueueReq{
+		address: address,
+	}
 }
 
 func EmptyReadFIFOQueueReq() *MBReadFIFOQueueReq {
@@ -2521,91 +2549,96 @@ func (s *MBReadFIFOQueueReq) FuncCode() byte {
 }
 
 func (s *MBReadFIFOQueueReq) Encode(writer io.Writer) (err byte) {
-	/*
-		defer func() {
-			if errInfo := recover(); errInfo != nil {
-				err = IllegalData
-			}
-		}()
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = IllegalData
+		}
+	}()
 
-		buffVal = append(buffVal, s.FuncCode())
-		buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
-
-		ret = buffVal
-	*/
+	buffVal := make([]byte, 0)
+	buffVal = append(buffVal, s.FuncCode())
+	buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
+	wSize, wErr := writer.Write(buffVal)
+	if wErr != nil || wSize != len(buffVal) {
+		err = IllegalAddress
+		return
+	}
 
 	return
 }
 
 func (s *MBReadFIFOQueueReq) Decode(reader io.Reader) (err byte) {
-	/*
-		defer func() {
-			if errInfo := recover(); errInfo != nil {
-				err = IllegalData
-			}
-			if err != SuccessCode {
-				return
-			}
-		}()
-
-		funcCode := byteData[0]
-		if funcCode != s.FuncCode() {
-			err = IllegalFuncCode
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = IllegalData
+		}
+		if err != SuccessCode {
 			return
 		}
+	}()
+	dataVal := make([]byte, 3)
+	rSize, rErr := reader.Read(dataVal)
+	if rErr != nil || rSize != 3 {
+		err = IllegalAddress
+		return
+	}
 
-		s.address = binary.BigEndian.Uint16(byteData[1:3])
-	*/
+	funcCode := dataVal[0]
+	if funcCode != s.FuncCode() {
+		err = IllegalFuncCode
+		return
+	}
+
+	s.address = binary.BigEndian.Uint16(dataVal[1:3])
 
 	return
 }
 
 func (s *MBReadFIFOQueueReq) CalcLen() uint16 {
-	return 0
+	return 3
 }
 
 func (s *MBReadFIFOQueueReq) EncodePayload(writer io.Writer) (err byte) {
-	/*
-		defer func() {
-			if errInfo := recover(); errInfo != nil {
-				err = IllegalData
-			}
-		}()
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = IllegalData
+		}
+	}()
 
-		buffVal = append(buffVal, s.FuncCode())
-		buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
-
-		ret = buffVal
-	*/
+	buffVal := make([]byte, 0)
+	buffVal = binary.BigEndian.AppendUint16(buffVal, s.address)
+	wSize, wErr := writer.Write(buffVal)
+	if wErr != nil || wSize != len(buffVal) {
+		err = IllegalAddress
+		return
+	}
 
 	return
 }
 
 func (s *MBReadFIFOQueueReq) DecodePayload(reader io.Reader) (err byte) {
-	/*
-		defer func() {
-			if errInfo := recover(); errInfo != nil {
-				err = IllegalData
-			}
-			if err != SuccessCode {
-				return
-			}
-		}()
-
-		funcCode := byteData[0]
-		if funcCode != s.FuncCode() {
-			err = IllegalFuncCode
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = IllegalData
+		}
+		if err != SuccessCode {
 			return
 		}
+	}()
+	dataVal := make([]byte, 2)
+	rSize, rErr := reader.Read(dataVal)
+	if rErr != nil || rSize != 2 {
+		err = IllegalAddress
+		return
+	}
 
-		s.address = binary.BigEndian.Uint16(byteData[1:3])
-	*/
+	s.address = binary.BigEndian.Uint16(dataVal[0:2])
 
 	return
 }
 
 func (s *MBReadFIFOQueueReq) CalcPayloadLen() uint16 {
-	return 0
+	return 2
 }
 
 func (s *MBReadFIFOQueueReq) Address() uint16 {
@@ -2637,99 +2670,118 @@ func (s *MBReadFIFOQueueRsp) ExceptionCode() byte {
 }
 
 func (s *MBReadFIFOQueueRsp) Encode(writer io.Writer) (err byte) {
-	/*
-		defer func() {
-			if errInfo := recover(); errInfo != nil {
-				err = IllegalData
-			}
-		}()
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = IllegalData
+		}
+	}()
 
-		buffVal = append(buffVal, s.FuncCode())
-		buffVal = binary.BigEndian.AppendUint16(buffVal, uint16(len(s.dataVal))+2)
-		buffVal = binary.BigEndian.AppendUint16(buffVal, s.dataCount)
-		buffVal = append(buffVal, s.dataVal...)
+	buffVal := make([]byte, 0)
+	buffVal = append(buffVal, s.FuncCode())
+	buffVal = binary.BigEndian.AppendUint16(buffVal, uint16(len(s.dataVal))+2)
+	buffVal = binary.BigEndian.AppendUint16(buffVal, s.dataCount)
+	buffVal = append(buffVal, s.dataVal...)
 
-		ret = buffVal
-	*/
+	wSize, wErr := writer.Write(buffVal)
+	if wErr != nil || wSize != len(buffVal) {
+		err = IllegalAddress
+		return
+	}
 
 	return
 }
 
 func (s *MBReadFIFOQueueRsp) Decode(reader io.Reader) (err byte) {
-	/*
-		defer func() {
-			if errInfo := recover(); errInfo != nil {
-				err = IllegalData
-			}
-			if err != SuccessCode {
-				return
-			}
-		}()
-
-		funcCode := byteData[0]
-		if funcCode != s.FuncCode() {
-			err = IllegalFuncCode
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = IllegalData
+		}
+		if err != SuccessCode {
 			return
 		}
+	}()
+	dataVal := make([]byte, 5)
+	rSize, rErr := reader.Read(dataVal)
+	if rErr != nil || rSize != 5 {
+		err = IllegalAddress
+		return
+	}
 
-		byteSize := binary.BigEndian.Uint16(byteData[1:3])
-		s.dataCount = binary.BigEndian.Uint16(byteData[3:5])
-		s.dataVal = byteData[5 : 5+byteSize-2]
-	*/
+	funcCode := dataVal[0]
+	if funcCode != s.FuncCode() {
+		err = IllegalFuncCode
+		return
+	}
 
+	byteSize := int(binary.BigEndian.Uint16(dataVal[1:3]))
+	s.dataCount = binary.BigEndian.Uint16(dataVal[3:5])
+	dataVal = make([]byte, byteSize-2)
+	rSize, rErr = reader.Read(dataVal)
+	if rErr != nil || rSize != (byteSize-2) {
+		err = IllegalAddress
+		return
+	}
+
+	s.dataVal = dataVal
 	return
 }
 
 func (s *MBReadFIFOQueueRsp) CalcLen() uint16 {
-	return 0
+	return 5 + uint16(len(s.dataVal))
 }
 
 func (s *MBReadFIFOQueueRsp) EncodePayload(writer io.Writer) (err byte) {
-	/*
-		defer func() {
-			if errInfo := recover(); errInfo != nil {
-				err = IllegalData
-			}
-		}()
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = IllegalData
+		}
+	}()
 
-		buffVal = append(buffVal, s.FuncCode())
-		buffVal = binary.BigEndian.AppendUint16(buffVal, uint16(len(s.dataVal))+2)
-		buffVal = binary.BigEndian.AppendUint16(buffVal, s.dataCount)
-		buffVal = append(buffVal, s.dataVal...)
+	buffVal := make([]byte, 0)
+	buffVal = binary.BigEndian.AppendUint16(buffVal, uint16(len(s.dataVal))+2)
+	buffVal = binary.BigEndian.AppendUint16(buffVal, s.dataCount)
+	buffVal = append(buffVal, s.dataVal...)
 
-		ret = buffVal
-	*/
+	wSize, wErr := writer.Write(buffVal)
+	if wErr != nil || wSize != len(buffVal) {
+		err = IllegalAddress
+		return
+	}
 
 	return
 }
 
 func (s *MBReadFIFOQueueRsp) DecodePayload(reader io.Reader) (err byte) {
-	/*
-		defer func() {
-			if errInfo := recover(); errInfo != nil {
-				err = IllegalData
-			}
-			if err != SuccessCode {
-				return
-			}
-		}()
-
-		funcCode := byteData[0]
-		if funcCode != s.FuncCode() {
-			err = IllegalFuncCode
+	defer func() {
+		if errInfo := recover(); errInfo != nil {
+			err = IllegalData
+		}
+		if err != SuccessCode {
 			return
 		}
+	}()
+	dataVal := make([]byte, 4)
+	rSize, rErr := reader.Read(dataVal)
+	if rErr != nil || rSize != 4 {
+		err = IllegalAddress
+		return
+	}
 
-		byteSize := binary.BigEndian.Uint16(byteData[1:3])
-		s.dataCount = binary.BigEndian.Uint16(byteData[3:5])
-		s.dataVal = byteData[5 : 5+byteSize-2]
-	*/
+	byteSize := int(binary.BigEndian.Uint16(dataVal[0:2]))
+	s.dataCount = binary.BigEndian.Uint16(dataVal[2:4])
+	dataVal = make([]byte, byteSize-2)
+	rSize, rErr = reader.Read(dataVal)
+	if rErr != nil || rSize != (byteSize-2) {
+		err = IllegalAddress
+		return
+	}
 
+	s.dataVal = dataVal
 	return
 }
 
 func (s *MBReadFIFOQueueRsp) CalcPayloadLen() uint16 {
-	return 0
+	return 4 + uint16(len(s.dataVal))
 }
 
 func (s *MBReadFIFOQueueRsp) DataCount() uint16 {

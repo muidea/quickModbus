@@ -232,8 +232,7 @@ type WriteFileRecordRequest struct {
 
 type WriteFileRecordResponse struct {
 	cd.Result
-	ExceptionCode byte         `json:"exceptionCode"`
-	Items         []*WriteItem `json:"items"`
+	ExceptionCode byte `json:"exceptionCode"`
 }
 
 type MaskWriteRegisterRequest struct {
@@ -264,9 +263,11 @@ type ReadWriteMultipleRegistersResponse struct {
 }
 
 type ReadFIFOQueueRequest struct {
+	Address uint16 `json:"address"`
 }
 
 type ReadFIFOQueueResponse struct {
 	cd.Result
-	ExceptionCode byte `json:"exceptionCode"`
+	ExceptionCode byte     `json:"exceptionCode"`
+	Data          []string `json:"data"`
 }
