@@ -31,6 +31,12 @@ const (
 )
 
 const (
+	ModbusTcp          = 0
+	ModbusRTUOverTcp   = 1
+	ModbusASCIIOverTcp = 2
+)
+
+const (
 	ConnectSlave               = "/slave/connect"
 	DisConnectSlave            = "/slave/:id/disconnect"
 	ReadCoils                  = "/slave/:id/coils/read"
@@ -54,8 +60,9 @@ const (
 )
 
 type ConnectSlaveRequest struct {
-	SlaveAddr string `json:"slaveAddr"`
-	DeviceID  byte   `json:"deviceID"`
+	SlaveAddr  string `json:"slaveAddr"`
+	DeviceID   byte   `json:"deviceID"`
+	DeviceType byte   `json:"deviceType"`
 }
 
 type ConnectSlaveResponse struct {

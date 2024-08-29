@@ -32,7 +32,7 @@ func New(
 	}
 }
 
-func (s *Master) ConnectSlave(slaveAddr string, devID byte) (ret string, err *cd.Result) {
+func (s *Master) ConnectSlave(slaveAddr string, devID, devType byte) (ret string, err *cd.Result) {
 	slaveID := fmt.Sprintf("mb%03d", devID)
 	val := s.slaveInfoCache.Fetch(slaveID)
 	if val != nil {
@@ -42,7 +42,18 @@ func (s *Master) ConnectSlave(slaveAddr string, devID byte) (ret string, err *cd
 		return
 	}
 
-	masterPtr := NewTCPMaster(devID)
+	var masterPtr MBMaster
+	if devType == common.ModbusTcp {
+		masterPtr = NewTCPMaster(devID)
+	} else if devType == common.ModbusRTUOverTcp {
+		masterPtr = NewRTUMaster(devID)
+	} else {
+		errMsg := fmt.Sprintf("illegal slave device type, id:%v, type:%v", devID, devType)
+		log.Errorf("connectSlave failed, error:%s", errMsg)
+		err = cd.NewError(cd.UnExpected, errMsg)
+		return
+	}
+
 	errInfo := masterPtr.Start(slaveAddr)
 	if errInfo != nil {
 		log.Errorf("connectSlave failed, error:%s", errInfo.Error())

@@ -77,9 +77,9 @@ func (s *Master) ConnectSlave(ctx context.Context, res http.ResponseWriter, req 
 			break
 		}
 
-		slaveID, slaveErr := s.bizPtr.ConnectSlave(param.SlaveAddr, param.DeviceID)
+		slaveID, slaveErr := s.bizPtr.ConnectSlave(param.SlaveAddr, param.DeviceID, param.DeviceType)
 		if slaveErr != nil {
-			log.Errorf("connect slave failed, slaveAddr:%s, deviceID:%v, error:%s", param.SlaveAddr, param.DeviceID, slaveErr.Error())
+			log.Errorf("connect slave failed, slaveAddr:%s, deviceID:%v, deviceType:%v, error:%s", param.SlaveAddr, param.DeviceID, param.DeviceType, slaveErr.Error())
 			result.Result = *slaveErr
 			break
 		}
