@@ -113,8 +113,10 @@ type mbSerialHeader struct {
 	address byte
 }
 
-func NewSerialHeader() MBSerialHeader {
-	return &mbSerialHeader{}
+func NewSerialHeader(address byte) MBSerialHeader {
+	return &mbSerialHeader{
+		address: address,
+	}
 }
 
 func EmptySerialHeader() MBSerialHeader {
@@ -159,7 +161,7 @@ func (s *mbSerialHeader) Decode(reader io.Reader) (err byte) {
 	return
 }
 
-func EncodeMBProtocol(header MBTcpHeader, pdu MBProtocol, writer io.Writer) (err byte) {
+func EncodeMBTcpProtocol(header MBTcpHeader, pdu MBProtocol, writer io.Writer) (err byte) {
 	err = header.Encode(writer)
 	if err != SuccessCode {
 		return
@@ -178,19 +180,19 @@ func EncodeMBProtocol(header MBTcpHeader, pdu MBProtocol, writer io.Writer) (err
 	return
 }
 
-func DecodeMBProtocol(reader io.Reader, actionType int) (MBTcpHeader, MBProtocol, byte) {
+func DecodeMBTcpProtocol(reader io.Reader, actionType int) (MBTcpHeader, MBProtocol, byte) {
 	if actionType == RequestAction {
-		return decodeRequestPDU(reader)
+		return decodeTcpRequestPDU(reader)
 	}
 
 	if actionType == ResponseAction {
-		return decodeResponsePDU(reader)
+		return decodeTcpResponsePDU(reader)
 	}
 
 	return nil, nil, IllegalData
 }
 
-func decodeRequestPDU(reader io.Reader) (MBTcpHeader, MBProtocol, byte) {
+func decodeTcpRequestPDU(reader io.Reader) (MBTcpHeader, MBProtocol, byte) {
 	header := EmptyTcpHeader()
 	err := header.Decode(reader)
 	if err != SuccessCode {
@@ -260,8 +262,188 @@ func decodeRequestPDU(reader io.Reader) (MBTcpHeader, MBProtocol, byte) {
 	return header, protocol, err
 }
 
-func decodeResponsePDU(reader io.Reader) (MBTcpHeader, MBProtocol, byte) {
+func decodeTcpResponsePDU(reader io.Reader) (MBTcpHeader, MBProtocol, byte) {
 	header := EmptyTcpHeader()
+	err := header.Decode(reader)
+	if err != SuccessCode {
+		return nil, nil, err
+	}
+
+	funcCode := make([]byte, 1)
+	rSize, rErr := reader.Read(funcCode)
+	if rErr != nil || rSize != 1 {
+		err = IllegalAddress
+		return nil, nil, err
+	}
+	var exceptionCode byte
+	lCode := funcCode[0]
+	if funcCode[0] > 0x80 {
+		exceptionRsp := EmptyExceptionRsp()
+		err = exceptionRsp.DecodePayload(reader)
+		if err != SuccessCode {
+			return nil, nil, err
+		}
+		exceptionCode = exceptionRsp.ExceptionCode()
+		lCode = funcCode[0] - 0x80
+	}
+	var protocol MBProtocol
+	switch lCode {
+	case ReadCoils:
+		protocol = EmptyReadCoilsRsp(exceptionCode)
+	case ReadDiscreteInputs:
+		protocol = EmptyReadDiscreteInputsRsp(exceptionCode)
+	case ReadHoldingRegisters:
+		protocol = EmptyReadHoldingRegistersRsp(exceptionCode)
+	case ReadInputRegisters:
+		protocol = EmptyReadInputRegistersRsp(exceptionCode)
+	case WriteSingleCoil:
+		protocol = EmptyWriteSingleCoilRsp(exceptionCode)
+	case WriteSingleRegister:
+		protocol = EmptyWriteSingleRegisterRsp(exceptionCode)
+	case ReadExceptionStatus:
+		protocol = EmptyReadExceptionStatusRsp(exceptionCode)
+	case Diagnostics:
+		protocol = EmptyDiagnosticsRsp(exceptionCode)
+	case GetCommEventCounter:
+		protocol = EmptyGetCommEventCounterRsp(exceptionCode)
+	case GetCommEventLog:
+		protocol = EmptyGetCommEventLogRsp(exceptionCode)
+	case WriteMultipleCoils:
+		protocol = EmptyWriteMultipleCoilsRsp(exceptionCode)
+	case WriteMultipleRegisters:
+		protocol = EmptyWriteMultipleRegistersRsp(exceptionCode)
+	case ReportSlaveID:
+		protocol = EmptyReportSlaveIDRsp(exceptionCode)
+	case ReadFileRecord:
+		protocol = EmptyReadFileRecordRsp(exceptionCode)
+	case WriteFileRecord:
+		protocol = EmptyWriteFileRecordRsp(exceptionCode)
+	case MaskWriteRegister:
+		protocol = EmptyMaskWriteRegisterRsp(exceptionCode)
+	case ReadWriteMultipleRegisters:
+		protocol = EmptyReadWriteMultipleRegistersRsp(exceptionCode)
+	case ReadFIFOQueue:
+		protocol = EmptyReadFIFOQueueRsp(exceptionCode)
+	default:
+		err = IllegalFuncCode
+	}
+
+	if err != SuccessCode {
+		return nil, nil, err
+	}
+	if funcCode[0] < 0x80 {
+		err = protocol.DecodePayload(reader)
+		if err != SuccessCode {
+			return nil, nil, err
+		}
+	}
+
+	return header, protocol, err
+}
+
+func EncodeMBSerialProtocol(header MBSerialHeader, pdu MBProtocol, writer io.Writer) (err byte) {
+	err = header.Encode(writer)
+	if err != SuccessCode {
+		return
+	}
+
+	wSize, wErr := writer.Write([]byte{pdu.FuncCode()})
+	if wErr != nil || wSize != 1 {
+		err = IllegalAddress
+		return
+	}
+
+	err = pdu.EncodePayload(writer)
+	if err != SuccessCode {
+		return
+	}
+	return
+}
+
+func DecodeMBSerialProtocol(reader io.Reader, actionType int) (MBSerialHeader, MBProtocol, byte) {
+	if actionType == RequestAction {
+		return decodeSerialRequestPDU(reader)
+	}
+
+	if actionType == ResponseAction {
+		return decodeSerialResponsePDU(reader)
+	}
+
+	return nil, nil, IllegalData
+}
+
+func decodeSerialRequestPDU(reader io.Reader) (MBSerialHeader, MBProtocol, byte) {
+	header := EmptySerialHeader()
+	err := header.Decode(reader)
+	if err != SuccessCode {
+		return nil, nil, err
+	}
+
+	funcCode := make([]byte, 1)
+	rSize, rErr := reader.Read(funcCode)
+	if rErr != nil || rSize != 1 {
+		err = IllegalAddress
+		return nil, nil, err
+	}
+
+	var protocol MBProtocol
+	switch funcCode[0] {
+	case ReadCoils:
+		protocol = EmptyReadCoilsReq()
+	case ReadDiscreteInputs:
+		protocol = EmptyReadDiscreteInputsReq()
+	case ReadHoldingRegisters:
+		protocol = EmptyReadHoldingRegistersReq()
+	case ReadInputRegisters:
+		protocol = EmptyReadInputRegistersReq()
+	case WriteSingleCoil:
+		protocol = EmptyWriteSingleCoilReq()
+	case WriteSingleRegister:
+		protocol = EmptyWriteSingleRegisterReq()
+	case ReadExceptionStatus:
+		protocol = EmptyReadExceptionStatusReq()
+	case Diagnostics:
+		protocol = EmptyDiagnosticsReq()
+	case GetCommEventCounter:
+		protocol = EmptyGetCommEventCounterReq()
+	case GetCommEventLog:
+		protocol = EmptyGetCommEventLogReq()
+	case WriteMultipleCoils:
+		protocol = EmptyWriteMultipleCoilsReq()
+	case WriteMultipleRegisters:
+		protocol = EmptyWriteMultipleRegistersReq()
+	case ReportSlaveID:
+		protocol = EmptyReportSlaveIDReq()
+	case ReadFileRecord:
+		protocol = EmptyReadFileRecordReq()
+	case WriteFileRecord:
+		protocol = EmptyWriteFileRecordReq()
+	case MaskWriteRegister:
+		protocol = EmptyMaskWriteRegisterReq()
+	case ReadWriteMultipleRegisters:
+		protocol = EmptyReadWriteMultipleRegistersReq()
+	case ReadFIFOQueue:
+		protocol = EmptyReadFIFOQueueReq()
+	default:
+		err = IllegalFuncCode
+	}
+
+	if err != SuccessCode {
+		return nil, nil, err
+	}
+	if err != SuccessCode {
+		return nil, nil, err
+	}
+	err = protocol.DecodePayload(reader)
+	if err != SuccessCode {
+		return nil, nil, err
+	}
+
+	return header, protocol, err
+}
+
+func decodeSerialResponsePDU(reader io.Reader) (MBSerialHeader, MBProtocol, byte) {
+	header := EmptySerialHeader()
 	err := header.Decode(reader)
 	if err != SuccessCode {
 		return nil, nil, err

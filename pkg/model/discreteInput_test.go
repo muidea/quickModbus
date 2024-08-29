@@ -20,9 +20,9 @@ func TestDecodeMB003(t *testing.T) {
 	}
 
 	byteBuff := bytes.NewBuffer(byteVal)
-	_, protocol, errCode := DecodeMBProtocol(byteBuff, RequestAction)
+	_, protocol, errCode := DecodeMBTcpProtocol(byteBuff, RequestAction)
 	if errCode != SuccessCode {
-		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
+		t.Errorf("DecodeMBTcpProtocol failed, error code :%v", errCode)
 		return
 	}
 
@@ -53,9 +53,9 @@ func TestDecodeMB003(t *testing.T) {
 	}
 
 	byteBuff = bytes.NewBuffer(byteVal)
-	_, protocol, errCode = DecodeMBProtocol(byteBuff, ResponseAction)
+	_, protocol, errCode = DecodeMBTcpProtocol(byteBuff, ResponseAction)
 	if errCode != SuccessCode {
-		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
+		t.Errorf("DecodeMBTcpProtocol failed, error code :%v", errCode)
 		return
 	}
 
@@ -107,9 +107,9 @@ func TestDecodeMB004(t *testing.T) {
 	}
 
 	byteBuff := bytes.NewBuffer(byteVal)
-	_, protocol, errCode := DecodeMBProtocol(byteBuff, RequestAction)
+	_, protocol, errCode := DecodeMBTcpProtocol(byteBuff, RequestAction)
 	if errCode != SuccessCode {
-		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
+		t.Errorf("DecodeMBTcpProtocol failed, error code :%v", errCode)
 		return
 	}
 
@@ -140,9 +140,9 @@ func TestDecodeMB004(t *testing.T) {
 	}
 
 	byteBuff = bytes.NewBuffer(byteVal)
-	_, protocol, errCode = DecodeMBProtocol(byteBuff, ResponseAction)
+	_, protocol, errCode = DecodeMBTcpProtocol(byteBuff, ResponseAction)
 	if errCode != SuccessCode {
-		t.Errorf("DecodeMBProtocol failed, error code :%v", errCode)
+		t.Errorf("DecodeMBTcpProtocol failed, error code :%v", errCode)
 		return
 	}
 

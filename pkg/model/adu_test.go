@@ -12,17 +12,17 @@ func TestDecodeWriteMultipleRegisters(t *testing.T) {
 	byteVal, _ := hex.DecodeString(strVal)
 	reader := bytes.NewBuffer(byteVal)
 
-	header, protocol, err := DecodeMBProtocol(reader, ResponseAction)
+	header, protocol, err := DecodeMBTcpProtocol(reader, ResponseAction)
 	if err != SuccessCode {
-		t.Errorf("DecodeMBProtocol failed, error:%v", err)
+		t.Errorf("DecodeMBTcpProtocol failed, error:%v", err)
 		return
 	}
 	if header.Transaction() != 1 {
-		t.Errorf("DecodeMBProtocol failed, mismatch transaction")
+		t.Errorf("DecodeMBTcpProtocol failed, mismatch transaction")
 		return
 	}
 	if protocol.FuncCode() != WriteMultipleRegisters {
-		t.Errorf("DecodeMBProtocol failed, mismatch funCode")
+		t.Errorf("DecodeMBTcpProtocol failed, mismatch funCode")
 		return
 	}
 }
@@ -32,17 +32,17 @@ func TestDecodeReadHoldingRegisters(t *testing.T) {
 	byteVal, _ := hex.DecodeString(strVal)
 	reader := bytes.NewBuffer(byteVal)
 
-	header, protocol, err := DecodeMBProtocol(reader, ResponseAction)
+	header, protocol, err := DecodeMBTcpProtocol(reader, ResponseAction)
 	if err != SuccessCode {
-		t.Errorf("DecodeMBProtocol failed, error:%v", err)
+		t.Errorf("DecodeMBTcpProtocol failed, error:%v", err)
 		return
 	}
 	if header.Transaction() != 2 {
-		t.Errorf("DecodeMBProtocol failed, mismatch transaction")
+		t.Errorf("DecodeMBTcpProtocol failed, mismatch transaction")
 		return
 	}
 	if protocol.FuncCode() != ReadHoldingRegisters {
-		t.Errorf("DecodeMBProtocol failed, mismatch funCode")
+		t.Errorf("DecodeMBTcpProtocol failed, mismatch funCode")
 		return
 	}
 }
@@ -52,17 +52,17 @@ func TestDecodeReadWriteMultipleRegisters(t *testing.T) {
 	byteVal, _ := hex.DecodeString(strVal)
 	reader := bytes.NewBuffer(byteVal)
 
-	header, protocol, err := DecodeMBProtocol(reader, RequestAction)
+	header, protocol, err := DecodeMBTcpProtocol(reader, RequestAction)
 	if err != SuccessCode {
-		t.Errorf("DecodeMBProtocol failed, error:%v", err)
+		t.Errorf("DecodeMBTcpProtocol failed, error:%v", err)
 		return
 	}
 	if header.Transaction() != 249 {
-		t.Errorf("DecodeMBProtocol failed, mismatch transaction")
+		t.Errorf("DecodeMBTcpProtocol failed, mismatch transaction")
 		return
 	}
 	if protocol.FuncCode() != ReadWriteMultipleRegisters {
-		t.Errorf("DecodeMBProtocol failed, mismatch funCode")
+		t.Errorf("DecodeMBTcpProtocol failed, mismatch funCode")
 		return
 	}
 
@@ -70,17 +70,17 @@ func TestDecodeReadWriteMultipleRegisters(t *testing.T) {
 	byteVal, _ = hex.DecodeString(strVal)
 	reader = bytes.NewBuffer(byteVal)
 
-	header, protocol, err = DecodeMBProtocol(reader, RequestAction)
+	header, protocol, err = DecodeMBTcpProtocol(reader, RequestAction)
 	if err != SuccessCode {
-		t.Errorf("DecodeMBProtocol failed, error:%v", err)
+		t.Errorf("DecodeMBTcpProtocol failed, error:%v", err)
 		return
 	}
 	if header.Transaction() != 7 {
-		t.Errorf("DecodeMBProtocol failed, mismatch transaction")
+		t.Errorf("DecodeMBTcpProtocol failed, mismatch transaction")
 		return
 	}
 	if protocol.FuncCode() != ReadWriteMultipleRegisters {
-		t.Errorf("DecodeMBProtocol failed, mismatch funCode")
+		t.Errorf("DecodeMBTcpProtocol failed, mismatch funCode")
 		return
 	}
 
@@ -88,17 +88,17 @@ func TestDecodeReadWriteMultipleRegisters(t *testing.T) {
 	byteVal, _ = hex.DecodeString(strVal)
 	reader = bytes.NewBuffer(byteVal)
 
-	header, protocol, err = DecodeMBProtocol(reader, RequestAction)
+	header, protocol, err = DecodeMBTcpProtocol(reader, RequestAction)
 	if err != SuccessCode {
-		t.Errorf("DecodeMBProtocol failed, error:%v", err)
+		t.Errorf("DecodeMBTcpProtocol failed, error:%v", err)
 		return
 	}
 	if header.Transaction() != 3 {
-		t.Errorf("DecodeMBProtocol failed, mismatch transaction")
+		t.Errorf("DecodeMBTcpProtocol failed, mismatch transaction")
 		return
 	}
 	if protocol.FuncCode() != ReadWriteMultipleRegisters {
-		t.Errorf("DecodeMBProtocol failed, mismatch funCode")
+		t.Errorf("DecodeMBTcpProtocol failed, mismatch funCode")
 		return
 	}
 
@@ -106,17 +106,17 @@ func TestDecodeReadWriteMultipleRegisters(t *testing.T) {
 	byteVal, _ = hex.DecodeString(strVal)
 	reader = bytes.NewBuffer(byteVal)
 
-	header, protocol, err = DecodeMBProtocol(reader, ResponseAction)
+	header, protocol, err = DecodeMBTcpProtocol(reader, ResponseAction)
 	if err != SuccessCode {
-		t.Errorf("DecodeMBProtocol failed, error:%v", err)
+		t.Errorf("DecodeMBTcpProtocol failed, error:%v", err)
 		return
 	}
 	if header.Transaction() != 3 {
-		t.Errorf("DecodeMBProtocol failed, mismatch transaction")
+		t.Errorf("DecodeMBTcpProtocol failed, mismatch transaction")
 		return
 	}
 	if protocol.FuncCode() != ReadWriteMultipleRegisters {
-		t.Errorf("DecodeMBProtocol failed, mismatch funCode")
+		t.Errorf("DecodeMBTcpProtocol failed, mismatch funCode")
 		return
 	}
 }

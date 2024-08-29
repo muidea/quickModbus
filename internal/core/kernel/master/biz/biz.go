@@ -42,8 +42,8 @@ func (s *Master) ConnectSlave(slaveAddr string, devID byte) (ret string, err *cd
 		return
 	}
 
-	masterPtr := &MBMaster{}
-	errInfo := masterPtr.Start(slaveAddr, devID)
+	masterPtr := NewTCPMaster(devID)
+	errInfo := masterPtr.Start(slaveAddr)
 	if errInfo != nil {
 		log.Errorf("connectSlave failed, error:%s", errInfo.Error())
 		err = cd.NewError(cd.UnExpected, errInfo.Error())
@@ -64,7 +64,7 @@ func (s *Master) DisConnectSlave(slaveID string) (err *cd.Result) {
 		return
 	}
 
-	vVal.(*MBMaster).Stop()
+	vVal.(MBMaster).Stop()
 	s.slaveInfoCache.Remove(slaveID)
 	return
 }
@@ -78,7 +78,7 @@ func (s *Master) ReadCoils(slaveID string, address, count uint16) (ret []bool, e
 		return
 	}
 
-	mbMasterPtr := vVal.(*MBMaster)
+	mbMasterPtr := vVal.(MBMaster)
 	if !mbMasterPtr.IsConnect() {
 		connErr := mbMasterPtr.ReConnect()
 		if connErr != nil {
@@ -121,7 +121,7 @@ func (s *Master) ReadDiscreteInputs(slaveID string, address, count uint16) (ret 
 		err = cd.NewError(cd.UnExpected, errMsg)
 		return
 	}
-	mbMasterPtr := vVal.(*MBMaster)
+	mbMasterPtr := vVal.(MBMaster)
 	if !mbMasterPtr.IsConnect() {
 		connErr := mbMasterPtr.ReConnect()
 		if connErr != nil {
@@ -223,7 +223,7 @@ func (s *Master) ReadHoldingRegisters(slaveID string, address, count, valueType,
 		return
 	}
 
-	mbMasterPtr := vVal.(*MBMaster)
+	mbMasterPtr := vVal.(MBMaster)
 	if !mbMasterPtr.IsConnect() {
 		connErr := mbMasterPtr.ReConnect()
 		if connErr != nil {
@@ -279,7 +279,7 @@ func (s *Master) ReadInputRegisters(slaveID string, address, count, valueType, e
 		err = cd.NewError(cd.UnExpected, errMsg)
 		return
 	}
-	mbMasterPtr := vVal.(*MBMaster)
+	mbMasterPtr := vVal.(MBMaster)
 	if !mbMasterPtr.IsConnect() {
 		connErr := mbMasterPtr.ReConnect()
 		if connErr != nil {
@@ -337,7 +337,7 @@ func (s *Master) WriteSingleCoil(slaveID string, address uint16, value bool) (ex
 		return
 	}
 
-	mbMasterPtr := vVal.(*MBMaster)
+	mbMasterPtr := vVal.(MBMaster)
 	if !mbMasterPtr.IsConnect() {
 		connErr := mbMasterPtr.ReConnect()
 		if connErr != nil {
@@ -386,7 +386,7 @@ func (s *Master) WriteMultipleCoils(slaveID string, address uint16, value []bool
 		return
 	}
 
-	mbMasterPtr := vVal.(*MBMaster)
+	mbMasterPtr := vVal.(MBMaster)
 	if !mbMasterPtr.IsConnect() {
 		connErr := mbMasterPtr.ReConnect()
 		if connErr != nil {
@@ -438,7 +438,7 @@ func (s *Master) WriteSingleRegister(slaveID string, address uint16, value uint1
 		return
 	}
 
-	mbMasterPtr := vVal.(*MBMaster)
+	mbMasterPtr := vVal.(MBMaster)
 	if !mbMasterPtr.IsConnect() {
 		connErr := mbMasterPtr.ReConnect()
 		if connErr != nil {
@@ -488,7 +488,7 @@ func (s *Master) WriteMultipleRegisters(slaveID string, address uint16, values [
 		return
 	}
 
-	mbMasterPtr := vVal.(*MBMaster)
+	mbMasterPtr := vVal.(MBMaster)
 	if !mbMasterPtr.IsConnect() {
 		connErr := mbMasterPtr.ReConnect()
 		if connErr != nil {
@@ -574,7 +574,7 @@ func (s *Master) MaskWriteRegister(slaveID string, address uint16, andMask uint1
 		return
 	}
 
-	mbMasterPtr := vVal.(*MBMaster)
+	mbMasterPtr := vVal.(MBMaster)
 	if !mbMasterPtr.IsConnect() {
 		connErr := mbMasterPtr.ReConnect()
 		if connErr != nil {
@@ -634,7 +634,7 @@ func (s *Master) ReadWriteMultipleRegisters(slaveID string, readAddr, readCount,
 		return
 	}
 
-	mbMasterPtr := vVal.(*MBMaster)
+	mbMasterPtr := vVal.(MBMaster)
 	if !mbMasterPtr.IsConnect() {
 		connErr := mbMasterPtr.ReConnect()
 		if connErr != nil {
@@ -767,7 +767,7 @@ func (s *Master) ReadExceptionStatus(slaveID string) (status, exCode byte, err *
 		return
 	}
 
-	mbMasterPtr := vVal.(*MBMaster)
+	mbMasterPtr := vVal.(MBMaster)
 	if !mbMasterPtr.IsConnect() {
 		connErr := mbMasterPtr.ReConnect()
 		if connErr != nil {
@@ -804,7 +804,7 @@ func (s *Master) Diagnostics(slaveID string, subFuncCode uint16, dataVal string)
 		return
 	}
 
-	mbMasterPtr := vVal.(*MBMaster)
+	mbMasterPtr := vVal.(MBMaster)
 	if !mbMasterPtr.IsConnect() {
 		connErr := mbMasterPtr.ReConnect()
 		if connErr != nil {
@@ -854,7 +854,7 @@ func (s *Master) GetCommEventCounter(slaveID string) (status, eventCount uint16,
 		return
 	}
 
-	mbMasterPtr := vVal.(*MBMaster)
+	mbMasterPtr := vVal.(MBMaster)
 	if !mbMasterPtr.IsConnect() {
 		connErr := mbMasterPtr.ReConnect()
 		if connErr != nil {
@@ -892,7 +892,7 @@ func (s *Master) GetCommEventLog(slaveID string) (status, eventCount, messageCou
 		return
 	}
 
-	mbMasterPtr := vVal.(*MBMaster)
+	mbMasterPtr := vVal.(MBMaster)
 	if !mbMasterPtr.IsConnect() {
 		connErr := mbMasterPtr.ReConnect()
 		if connErr != nil {
@@ -932,7 +932,7 @@ func (s *Master) ReportSlaveID(slaveID string) (ret string, exCode byte, err *cd
 		return
 	}
 
-	mbMasterPtr := vVal.(*MBMaster)
+	mbMasterPtr := vVal.(MBMaster)
 	if !mbMasterPtr.IsConnect() {
 		connErr := mbMasterPtr.ReConnect()
 		if connErr != nil {
@@ -969,7 +969,7 @@ func (s *Master) ReadFileRecord(slaveID string, items []*common.ReadItem) (ret [
 		return
 	}
 
-	mbMasterPtr := vVal.(*MBMaster)
+	mbMasterPtr := vVal.(MBMaster)
 	if !mbMasterPtr.IsConnect() {
 		connErr := mbMasterPtr.ReConnect()
 		if connErr != nil {
@@ -1008,7 +1008,7 @@ func (s *Master) WriteFileRecord(slaveID string, items []*common.WriteItem) (exC
 		return
 	}
 
-	mbMasterPtr := vVal.(*MBMaster)
+	mbMasterPtr := vVal.(MBMaster)
 	if !mbMasterPtr.IsConnect() {
 		connErr := mbMasterPtr.ReConnect()
 		if connErr != nil {
@@ -1044,7 +1044,7 @@ func (s *Master) ReadFIFOQueue(slaveID string, address uint16) (retData []string
 		return
 	}
 
-	mbMasterPtr := vVal.(*MBMaster)
+	mbMasterPtr := vVal.(MBMaster)
 	if !mbMasterPtr.IsConnect() {
 		connErr := mbMasterPtr.ReConnect()
 		if connErr != nil {
