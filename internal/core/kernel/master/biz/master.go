@@ -6,6 +6,7 @@ import (
 )
 
 const defaultTimeOut = 5
+const connectID = 0
 
 type MBMaster interface {
 	Start(serverAddr string) (err error)

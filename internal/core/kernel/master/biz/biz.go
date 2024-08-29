@@ -47,6 +47,8 @@ func (s *Master) ConnectSlave(slaveAddr string, devID, devType byte) (ret string
 		masterPtr = NewTCPMaster(devID)
 	} else if devType == common.ModbusRTUOverTcp {
 		masterPtr = NewRTUMaster(devID)
+	} else if devType == common.ModbusASCIIOverTcp {
+		masterPtr = NewASCIIMaster(devID)
 	} else {
 		errMsg := fmt.Sprintf("illegal slave device type, id:%v, type:%v", devID, devType)
 		log.Errorf("connectSlave failed, error:%s", errMsg)

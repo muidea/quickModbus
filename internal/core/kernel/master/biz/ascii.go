@@ -14,13 +14,13 @@ import (
 	"github.com/muidea/quickModbus/pkg/model"
 )
 
-func NewRTUMaster(address byte) MBMaster {
-	return &mbSerialRTUMaster{
+func NewASCIIMaster(address byte) MBMaster {
+	return &mbSerialASCIIMaster{
 		address: address,
 	}
 }
 
-type mbSerialRTUMaster struct {
+type mbSerialASCIIMaster struct {
 	serverAddr string
 	signalGard signal.Gard
 
@@ -28,12 +28,12 @@ type mbSerialRTUMaster struct {
 	address   byte
 }
 
-func (s *mbSerialRTUMaster) reset() {
+func (s *mbSerialASCIIMaster) reset() {
 	s.signalGard.Reset()
 	s.tcpClient = nil
 }
 
-func (s *mbSerialRTUMaster) connect(serverAddr string) (ret tcp.Client, err error) {
+func (s *mbSerialASCIIMaster) connect(serverAddr string) (ret tcp.Client, err error) {
 	err = s.signalGard.PutSignal(connectID)
 	if err != nil {
 		return
@@ -58,45 +58,43 @@ func (s *mbSerialRTUMaster) connect(serverAddr string) (ret tcp.Client, err erro
 	return
 }
 
-func (s *mbSerialRTUMaster) crcCheck(byteVal []byte) uint16 {
-	var crc uint16 = 0xFFFF
+func (s *mbSerialASCIIMaster) lrcCheck(byteVal []byte) byte {
+	var lrc byte = 0
 
 	for _, b := range byteVal {
-		crc ^= uint16(b)
-		for i := 0; i < 8; i++ {
-			if (crc & 0x0001) != 0 {
-				crc = (crc >> 1) ^ 0xA001
-			} else {
-				crc = crc >> 1
-			}
-		}
+		lrc += b
 	}
 
-	return (crc >> 8) | (crc << 8)
+	lrc = 0xFF - lrc + 1
+
+	return lrc
 }
 
-func (s *mbSerialRTUMaster) encodeToRTUStream(byteVal []byte) []byte {
-	crcVal := s.crcCheck(byteVal)
-	byteVal, _ = common.AppendUint16(byteVal, crcVal)
-	return byteVal
+func (s *mbSerialASCIIMaster) encodeToASCIIStream(byteVal []byte) []byte {
+	lrcVal := s.lrcCheck(byteVal)
+	byteVal = append(byteVal, lrcVal)
+	strVal := ":" + hex.EncodeToString(byteVal) + "\r\n"
+	return []byte(strVal)
 }
 
-func (s *mbSerialRTUMaster) decodeFromRTUStream(dataVal []byte) ([]byte, error) {
-	rawData := dataVal[0 : len(dataVal)-2]
-	crcVal := s.crcCheck(rawData)
-	dataCRC, dataErr := common.BytesToUint16(dataVal[len(dataVal)-2:])
-	if dataErr != nil {
-		return nil, dataErr
+func (s *mbSerialASCIIMaster) decodeFromASCIIStream(dataVal []byte) ([]byte, error) {
+	strVal := string(dataVal)
+	strVal = strVal[1 : len(strVal)-2]
+	byteVal, byteErr := hex.DecodeString(strVal)
+	if byteErr != nil {
+		return nil, byteErr
 	}
-	if crcVal != dataCRC {
-		err := fmt.Errorf("check crc failed")
+
+	lrcVal := s.lrcCheck(byteVal[:len(byteVal)-2])
+	if lrcVal != byteVal[len(byteVal)-1] {
+		err := fmt.Errorf("check lrc failed")
 		return nil, err
 	}
 
-	return rawData, nil
+	return byteVal, nil
 }
 
-func (s *mbSerialRTUMaster) Start(serverAddr string) (err error) {
+func (s *mbSerialASCIIMaster) Start(serverAddr string) (err error) {
 	connClient, connErr := s.connect(serverAddr)
 	if connErr != nil {
 		err = connErr
@@ -109,7 +107,7 @@ func (s *mbSerialRTUMaster) Start(serverAddr string) (err error) {
 	return
 }
 
-func (s *mbSerialRTUMaster) Stop() {
+func (s *mbSerialASCIIMaster) Stop() {
 	if s.tcpClient == nil {
 		return
 	}
@@ -117,11 +115,11 @@ func (s *mbSerialRTUMaster) Stop() {
 	s.tcpClient.Close()
 }
 
-func (s *mbSerialRTUMaster) IsConnect() bool {
+func (s *mbSerialASCIIMaster) IsConnect() bool {
 	return s.tcpClient != nil
 }
 
-func (s *mbSerialRTUMaster) ReConnect() (err error) {
+func (s *mbSerialASCIIMaster) ReConnect() (err error) {
 	connClient, connErr := s.connect(s.serverAddr)
 	if connErr != nil {
 		err = connErr
@@ -133,7 +131,7 @@ func (s *mbSerialRTUMaster) ReConnect() (err error) {
 	return
 }
 
-func (s *mbSerialRTUMaster) OnConnect(ep tcp.Endpoint) {
+func (s *mbSerialASCIIMaster) OnConnect(ep tcp.Endpoint) {
 	err := s.signalGard.TriggerSignal(connectID, ep.RemoteAddr().String())
 	if err != nil {
 		log.Errorf("onConnect triggerSignal failed, error:%s", err.Error())
@@ -141,15 +139,15 @@ func (s *mbSerialRTUMaster) OnConnect(ep tcp.Endpoint) {
 	}
 }
 
-func (s *mbSerialRTUMaster) OnDisConnect(ep tcp.Endpoint) {
+func (s *mbSerialASCIIMaster) OnDisConnect(ep tcp.Endpoint) {
 	log.Warnf("onDisConnect from %s", ep.RemoteAddr().String())
 	s.reset()
 }
 
-func (s *mbSerialRTUMaster) OnRecvData(ep tcp.Endpoint, data []byte) {
-	dataVal, dataErr := s.decodeFromRTUStream(data)
+func (s *mbSerialASCIIMaster) OnRecvData(ep tcp.Endpoint, data []byte) {
+	dataVal, dataErr := s.decodeFromASCIIStream(data)
 	if dataErr != nil {
-		log.Errorf("decodeFromRTUStream failed, error:%s", dataErr.Error())
+		log.Errorf("decodeFromASCIIStream failed, error:%s", dataErr.Error())
 		return
 	}
 
@@ -170,7 +168,7 @@ func (s *mbSerialRTUMaster) OnRecvData(ep tcp.Endpoint, data []byte) {
 	}
 }
 
-func (s *mbSerialRTUMaster) ReadCoils(address, count uint16) (retData []byte, exCode byte, err error) {
+func (s *mbSerialASCIIMaster) ReadCoils(address, count uint16) (retData []byte, exCode byte, err error) {
 	protocol := model.NewReadCoilsReq(address, count)
 	header := model.NewSerialHeader(s.address)
 
@@ -188,7 +186,7 @@ func (s *mbSerialRTUMaster) ReadCoils(address, count uint16) (retData []byte, ex
 		log.Errorf("ReadCoils,signalGard.PutSignal failed, error:%s", err.Error())
 		return
 	}
-	byteVal := s.encodeToRTUStream(buffVal.Bytes())
+	byteVal := s.encodeToASCIIStream(buffVal.Bytes())
 	err = s.tcpClient.SendData(byteVal)
 	if err != nil {
 		log.Errorf("ReadCoils,tcpClient.SendData failed, error:%s", err.Error())
@@ -219,7 +217,7 @@ func (s *mbSerialRTUMaster) ReadCoils(address, count uint16) (retData []byte, ex
 	return
 }
 
-func (s *mbSerialRTUMaster) ReadDiscreteInputs(address, count uint16) (retData []byte, exCode byte, err error) {
+func (s *mbSerialASCIIMaster) ReadDiscreteInputs(address, count uint16) (retData []byte, exCode byte, err error) {
 	protocol := model.NewReadDiscreteInputsReq(address, count)
 	header := model.NewSerialHeader(s.address)
 
@@ -237,7 +235,7 @@ func (s *mbSerialRTUMaster) ReadDiscreteInputs(address, count uint16) (retData [
 		log.Errorf("ReadDiscreteInputs,signalGard.PutSignal failed, error:%s", err.Error())
 		return
 	}
-	byteVal := s.encodeToRTUStream(buffVal.Bytes())
+	byteVal := s.encodeToASCIIStream(buffVal.Bytes())
 	err = s.tcpClient.SendData(byteVal)
 	if err != nil {
 		log.Errorf("ReadDiscreteInputs,tcpClient.SendData failed, error:%s", err.Error())
@@ -268,7 +266,7 @@ func (s *mbSerialRTUMaster) ReadDiscreteInputs(address, count uint16) (retData [
 	return
 }
 
-func (s *mbSerialRTUMaster) ReadHoldingRegisters(address, count uint16) (retData []byte, exCode byte, err error) {
+func (s *mbSerialASCIIMaster) ReadHoldingRegisters(address, count uint16) (retData []byte, exCode byte, err error) {
 	protocol := model.NewReadHoldingRegistersReq(address, count)
 	header := model.NewSerialHeader(s.address)
 
@@ -286,7 +284,7 @@ func (s *mbSerialRTUMaster) ReadHoldingRegisters(address, count uint16) (retData
 		log.Errorf("ReadHoldingRegisters,signalGard.PutSignal failed, error:%s", err.Error())
 		return
 	}
-	byteVal := s.encodeToRTUStream(buffVal.Bytes())
+	byteVal := s.encodeToASCIIStream(buffVal.Bytes())
 	err = s.tcpClient.SendData(byteVal)
 	if err != nil {
 		log.Errorf("ReadHoldingRegisters,tcpClient.SendData failed, error:%s", err.Error())
@@ -317,7 +315,7 @@ func (s *mbSerialRTUMaster) ReadHoldingRegisters(address, count uint16) (retData
 	return
 }
 
-func (s *mbSerialRTUMaster) ReadInputRegisters(address, count uint16) (retData []byte, exCode byte, err error) {
+func (s *mbSerialASCIIMaster) ReadInputRegisters(address, count uint16) (retData []byte, exCode byte, err error) {
 	protocol := model.NewReadInputRegistersReq(address, count)
 	header := model.NewSerialHeader(s.address)
 
@@ -335,7 +333,7 @@ func (s *mbSerialRTUMaster) ReadInputRegisters(address, count uint16) (retData [
 		log.Errorf("ReadInputRegisters,signalGard.PutSignal failed, error:%s", err.Error())
 		return
 	}
-	byteVal := s.encodeToRTUStream(buffVal.Bytes())
+	byteVal := s.encodeToASCIIStream(buffVal.Bytes())
 	err = s.tcpClient.SendData(byteVal)
 	if err != nil {
 		log.Errorf("ReadInputRegisters,tcpClient.SendData failed, error:%s", err.Error())
@@ -366,7 +364,7 @@ func (s *mbSerialRTUMaster) ReadInputRegisters(address, count uint16) (retData [
 	return
 }
 
-func (s *mbSerialRTUMaster) WriteSingleCoil(address uint16, data []byte) (retAddr uint16, retData []byte, exCode byte, err error) {
+func (s *mbSerialASCIIMaster) WriteSingleCoil(address uint16, data []byte) (retAddr uint16, retData []byte, exCode byte, err error) {
 	protocol := model.NewWriteSingleCoilReq(address, data)
 	header := model.NewSerialHeader(s.address)
 
@@ -384,7 +382,7 @@ func (s *mbSerialRTUMaster) WriteSingleCoil(address uint16, data []byte) (retAdd
 		log.Errorf("WriteSingleCoil,signalGard.PutSignal failed, error:%s", err.Error())
 		return
 	}
-	byteVal := s.encodeToRTUStream(buffVal.Bytes())
+	byteVal := s.encodeToASCIIStream(buffVal.Bytes())
 	err = s.tcpClient.SendData(byteVal)
 	if err != nil {
 		log.Errorf("WriteSingleCoil,tcpClient.SendData failed, error:%s", err.Error())
@@ -416,7 +414,7 @@ func (s *mbSerialRTUMaster) WriteSingleCoil(address uint16, data []byte) (retAdd
 	return
 }
 
-func (s *mbSerialRTUMaster) WriteMultipleCoils(address, count uint16, data []byte) (retAddr, retCount uint16, exCode byte, err error) {
+func (s *mbSerialASCIIMaster) WriteMultipleCoils(address, count uint16, data []byte) (retAddr, retCount uint16, exCode byte, err error) {
 	protocol := model.NewWriteMultipleCoilsReq(address, count, data)
 	header := model.NewSerialHeader(s.address)
 
@@ -434,7 +432,7 @@ func (s *mbSerialRTUMaster) WriteMultipleCoils(address, count uint16, data []byt
 		log.Errorf("WriteMultipleCoils, signalGard.PutSignal failed, error:%s", err.Error())
 		return
 	}
-	byteVal := s.encodeToRTUStream(buffVal.Bytes())
+	byteVal := s.encodeToASCIIStream(buffVal.Bytes())
 	err = s.tcpClient.SendData(byteVal)
 	if err != nil {
 		log.Errorf("WriteMultipleCoils, tcpClient.SendData failed, error:%s", err.Error())
@@ -466,7 +464,7 @@ func (s *mbSerialRTUMaster) WriteMultipleCoils(address, count uint16, data []byt
 	return
 }
 
-func (s *mbSerialRTUMaster) WriteSingleRegister(address uint16, data []byte) (retAddr uint16, retData []byte, exCode byte, err error) {
+func (s *mbSerialASCIIMaster) WriteSingleRegister(address uint16, data []byte) (retAddr uint16, retData []byte, exCode byte, err error) {
 	protocol := model.NewWriteSingleRegisterReq(address, data)
 	header := model.NewSerialHeader(s.address)
 
@@ -484,7 +482,7 @@ func (s *mbSerialRTUMaster) WriteSingleRegister(address uint16, data []byte) (re
 		log.Errorf("WriteSingleRegister,signalGard.PutSignal failed, error:%s", err.Error())
 		return
 	}
-	byteVal := s.encodeToRTUStream(buffVal.Bytes())
+	byteVal := s.encodeToASCIIStream(buffVal.Bytes())
 	err = s.tcpClient.SendData(byteVal)
 	if err != nil {
 		log.Errorf("WriteSingleRegister,tcpClient.SendData failed, error:%s", err.Error())
@@ -516,7 +514,7 @@ func (s *mbSerialRTUMaster) WriteSingleRegister(address uint16, data []byte) (re
 	return
 }
 
-func (s *mbSerialRTUMaster) WriteMultipleRegisters(address, count uint16, data []byte) (retAddr, retCount uint16, exCode byte, err error) {
+func (s *mbSerialASCIIMaster) WriteMultipleRegisters(address, count uint16, data []byte) (retAddr, retCount uint16, exCode byte, err error) {
 	protocol := model.NewWriteMultipleRegistersReq(address, count, data)
 	header := model.NewSerialHeader(s.address)
 
@@ -534,7 +532,7 @@ func (s *mbSerialRTUMaster) WriteMultipleRegisters(address, count uint16, data [
 		log.Errorf("WriteMultipleRegisters,signalGard.PutSignal failed, error:%s", err.Error())
 		return
 	}
-	byteVal := s.encodeToRTUStream(buffVal.Bytes())
+	byteVal := s.encodeToASCIIStream(buffVal.Bytes())
 	err = s.tcpClient.SendData(byteVal)
 	if err != nil {
 		log.Errorf("WriteMultipleRegisters,tcpClient.SendData failed, error:%s", err.Error())
@@ -566,7 +564,7 @@ func (s *mbSerialRTUMaster) WriteMultipleRegisters(address, count uint16, data [
 	return
 }
 
-func (s *mbSerialRTUMaster) ReadExceptionStatus() (retStatus, exCode byte, err error) {
+func (s *mbSerialASCIIMaster) ReadExceptionStatus() (retStatus, exCode byte, err error) {
 	protocol := model.NewReadExceptionStatusReq()
 	header := model.NewSerialHeader(s.address)
 
@@ -584,7 +582,7 @@ func (s *mbSerialRTUMaster) ReadExceptionStatus() (retStatus, exCode byte, err e
 		log.Errorf("ReadExceptionStatus,signalGard.PutSignal failed, error:%s", err.Error())
 		return
 	}
-	byteVal := s.encodeToRTUStream(buffVal.Bytes())
+	byteVal := s.encodeToASCIIStream(buffVal.Bytes())
 	err = s.tcpClient.SendData(byteVal)
 	if err != nil {
 		log.Errorf("ReadExceptionStatus,tcpClient.SendData failed, error:%s", err.Error())
@@ -615,7 +613,7 @@ func (s *mbSerialRTUMaster) ReadExceptionStatus() (retStatus, exCode byte, err e
 	return
 }
 
-func (s *mbSerialRTUMaster) Diagnostics(subFuncCode uint16, data []byte) (retSubFuncCode uint16, retData []byte, exCode byte, err error) {
+func (s *mbSerialASCIIMaster) Diagnostics(subFuncCode uint16, data []byte) (retSubFuncCode uint16, retData []byte, exCode byte, err error) {
 	protocol := model.NewDiagnosticsReq(subFuncCode, data)
 	header := model.NewSerialHeader(s.address)
 
@@ -633,7 +631,7 @@ func (s *mbSerialRTUMaster) Diagnostics(subFuncCode uint16, data []byte) (retSub
 		log.Errorf("diagnostics,signalGard.PutSignal failed, error:%s", err.Error())
 		return
 	}
-	byteVal := s.encodeToRTUStream(buffVal.Bytes())
+	byteVal := s.encodeToASCIIStream(buffVal.Bytes())
 	err = s.tcpClient.SendData(byteVal)
 	if err != nil {
 		log.Errorf("diagnostics,tcpClient.SendData failed, error:%s", err.Error())
@@ -654,7 +652,7 @@ func (s *mbSerialRTUMaster) Diagnostics(subFuncCode uint16, data []byte) (retSub
 
 	readVal, readOK := recvVal.(*model.MBDiagnosticsRsp)
 	if !readOK {
-		err = fmt.Errorf("recv illegal write multiple registers response")
+		err = fmt.Errorf("recv illegal diagnostics response")
 		log.Errorf("diagnostics failed, error:%s", err.Error())
 		return
 	}
@@ -665,7 +663,7 @@ func (s *mbSerialRTUMaster) Diagnostics(subFuncCode uint16, data []byte) (retSub
 	return
 }
 
-func (s *mbSerialRTUMaster) GetCommEventCounter() (status uint16, eventCount uint16, exCode byte, err error) {
+func (s *mbSerialASCIIMaster) GetCommEventCounter() (status uint16, eventCount uint16, exCode byte, err error) {
 	protocol := model.NewGetCommEventCounterReq()
 	header := model.NewSerialHeader(s.address)
 
@@ -683,7 +681,7 @@ func (s *mbSerialRTUMaster) GetCommEventCounter() (status uint16, eventCount uin
 		log.Errorf("GetCommEventCounter signalGard.PutSignal failed, error:%s", err.Error())
 		return
 	}
-	byteVal := s.encodeToRTUStream(buffVal.Bytes())
+	byteVal := s.encodeToASCIIStream(buffVal.Bytes())
 	err = s.tcpClient.SendData(byteVal)
 	if err != nil {
 		log.Errorf("GetCommEventCounter tcpClient.SendData failed, error:%s", err.Error())
@@ -704,7 +702,7 @@ func (s *mbSerialRTUMaster) GetCommEventCounter() (status uint16, eventCount uin
 
 	readVal, readOK := recvVal.(*model.MBGetCommEventCounterRsp)
 	if !readOK {
-		err = fmt.Errorf("recv illegal write multiple registers response")
+		err = fmt.Errorf("recv illegal get comm event counter response")
 		log.Errorf("GetCommEventCounter failed, error:%s", err.Error())
 		return
 	}
@@ -715,14 +713,14 @@ func (s *mbSerialRTUMaster) GetCommEventCounter() (status uint16, eventCount uin
 	return
 }
 
-func (s *mbSerialRTUMaster) GetCommEventLog() (status uint16, eventCount, messageCount uint16, events []byte, exCode byte, err error) {
+func (s *mbSerialASCIIMaster) GetCommEventLog() (status uint16, eventCount, messageCount uint16, events []byte, exCode byte, err error) {
 	protocol := model.NewGetCommEventLogReq()
 	header := model.NewSerialHeader(s.address)
 
 	buffVal := bytes.NewBuffer(nil)
 	eErr := model.EncodeMBSerialProtocol(header, protocol, buffVal)
 	if eErr != model.SuccessCode {
-		err = fmt.Errorf("GetCommEventCounter encode mbprotocol failed, error:%v", eErr)
+		err = fmt.Errorf("GetCommEventLog encode mbprotocol failed, error:%v", eErr)
 		log.Errorf(err.Error())
 		return
 	}
@@ -730,32 +728,32 @@ func (s *mbSerialRTUMaster) GetCommEventLog() (status uint16, eventCount, messag
 	signalID := int(protocol.FuncCode())
 	err = s.signalGard.PutSignal(signalID)
 	if err != nil {
-		log.Errorf("GetCommEventCounter signalGard.PutSignal failed, error:%s", err.Error())
+		log.Errorf("GetCommEventLog signalGard.PutSignal failed, error:%s", err.Error())
 		return
 	}
-	byteVal := s.encodeToRTUStream(buffVal.Bytes())
+	byteVal := s.encodeToASCIIStream(buffVal.Bytes())
 	err = s.tcpClient.SendData(byteVal)
 	if err != nil {
-		log.Errorf("GetCommEventCounter tcpClient.SendData failed, error:%s", err.Error())
+		log.Errorf("GetCommEventLog tcpClient.SendData failed, error:%s", err.Error())
 		return
 	}
 
 	recvVal, recvErr := s.signalGard.WaitSignal(signalID, defaultTimeOut)
 	if recvErr != nil {
 		err = recvErr
-		log.Errorf("GetCommEventCounter failed, error:%s", err.Error())
+		log.Errorf("GetCommEventLog failed, error:%s", err.Error())
 		return
 	}
 	if recvVal == nil {
 		err = fmt.Errorf("recv illegal data")
-		log.Errorf("GetCommEventCounter failed, error:%s", err.Error())
+		log.Errorf("GetCommEventLog failed, error:%s", err.Error())
 		return
 	}
 
 	readVal, readOK := recvVal.(*model.MBGetCommEventLogRsp)
 	if !readOK {
-		err = fmt.Errorf("recv illegal write multiple registers response")
-		log.Errorf("GetCommEventCounter failed, error:%s", err.Error())
+		err = fmt.Errorf("recv illegal get comm event log response")
+		log.Errorf("GetCommEventLog failed, error:%s", err.Error())
 		return
 	}
 
@@ -767,7 +765,7 @@ func (s *mbSerialRTUMaster) GetCommEventLog() (status uint16, eventCount, messag
 	return
 }
 
-func (s *mbSerialRTUMaster) ReportSlaveID() (ret []byte, exCode byte, err error) {
+func (s *mbSerialASCIIMaster) ReportSlaveID() (ret []byte, exCode byte, err error) {
 	protocol := model.NewReportSlaveIDReq()
 	header := model.NewSerialHeader(s.address)
 
@@ -785,7 +783,7 @@ func (s *mbSerialRTUMaster) ReportSlaveID() (ret []byte, exCode byte, err error)
 		log.Errorf("ReportSlaveID signalGard.PutSignal failed, error:%s", err.Error())
 		return
 	}
-	byteVal := s.encodeToRTUStream(buffVal.Bytes())
+	byteVal := s.encodeToASCIIStream(buffVal.Bytes())
 	err = s.tcpClient.SendData(byteVal)
 	if err != nil {
 		log.Errorf("ReportSlaveID tcpClient.SendData failed, error:%s", err.Error())
@@ -806,7 +804,7 @@ func (s *mbSerialRTUMaster) ReportSlaveID() (ret []byte, exCode byte, err error)
 
 	readVal, readOK := recvVal.(*model.MBReportSlaveIDRsp)
 	if !readOK {
-		err = fmt.Errorf("recv illegal write multiple registers response")
+		err = fmt.Errorf("recv illegal report slave id response")
 		log.Errorf("ReportSlaveID failed, error:%s", err.Error())
 		return
 	}
@@ -816,7 +814,7 @@ func (s *mbSerialRTUMaster) ReportSlaveID() (ret []byte, exCode byte, err error)
 	return
 }
 
-func (s *mbSerialRTUMaster) ReadFileRecord(items []*common.ReadItem) (ret [][]byte, exCode byte, err error) {
+func (s *mbSerialASCIIMaster) ReadFileRecord(items []*common.ReadItem) (ret [][]byte, exCode byte, err error) {
 	reqItems := []*model.ReadRequestItem{}
 	for _, val := range items {
 		reqItems = append(reqItems, model.NewReadRequestItem(val.FileNumber, val.RecordNumber, val.RecordLength))
@@ -839,7 +837,7 @@ func (s *mbSerialRTUMaster) ReadFileRecord(items []*common.ReadItem) (ret [][]by
 		log.Errorf("ReadFileRecord signalGard.PutSignal failed, error:%s", err.Error())
 		return
 	}
-	byteVal := s.encodeToRTUStream(buffVal.Bytes())
+	byteVal := s.encodeToASCIIStream(buffVal.Bytes())
 	err = s.tcpClient.SendData(byteVal)
 	if err != nil {
 		log.Errorf("ReadFileRecord tcpClient.SendData failed, error:%s", err.Error())
@@ -872,7 +870,7 @@ func (s *mbSerialRTUMaster) ReadFileRecord(items []*common.ReadItem) (ret [][]by
 	return
 }
 
-func (s *mbSerialRTUMaster) WriteFileRecord(items []*common.WriteItem) (exCode byte, err error) {
+func (s *mbSerialASCIIMaster) WriteFileRecord(items []*common.WriteItem) (exCode byte, err error) {
 	reqItems := []*model.WriteItem{}
 	for _, val := range items {
 		byteVal, byteErr := hex.DecodeString(val.RecordData)
@@ -901,7 +899,7 @@ func (s *mbSerialRTUMaster) WriteFileRecord(items []*common.WriteItem) (exCode b
 		log.Errorf("WriteFileRecord signalGard.PutSignal failed, error:%s", err.Error())
 		return
 	}
-	byteVal := s.encodeToRTUStream(buffVal.Bytes())
+	byteVal := s.encodeToASCIIStream(buffVal.Bytes())
 	err = s.tcpClient.SendData(byteVal)
 	if err != nil {
 		log.Errorf("WriteFileRecord tcpClient.SendData failed, error:%s", err.Error())
@@ -936,7 +934,7 @@ func (s *mbSerialRTUMaster) WriteFileRecord(items []*common.WriteItem) (exCode b
 	return
 }
 
-func (s *mbSerialRTUMaster) MaskWriteRegister(address uint16, andBytes []byte, orBytes []byte) (retAddr uint16, retAnd []byte, retOr []byte, exCode byte, err error) {
+func (s *mbSerialASCIIMaster) MaskWriteRegister(address uint16, andBytes []byte, orBytes []byte) (retAddr uint16, retAnd []byte, retOr []byte, exCode byte, err error) {
 	protocol := model.NewMaskWriteRegisterReq(address, andBytes, orBytes)
 	header := model.NewSerialHeader(s.address)
 
@@ -954,7 +952,7 @@ func (s *mbSerialRTUMaster) MaskWriteRegister(address uint16, andBytes []byte, o
 		log.Errorf("WriteMultipleRegisters,signalGard.PutSignal failed, error:%s", err.Error())
 		return
 	}
-	byteVal := s.encodeToRTUStream(buffVal.Bytes())
+	byteVal := s.encodeToASCIIStream(buffVal.Bytes())
 	err = s.tcpClient.SendData(byteVal)
 	if err != nil {
 		log.Errorf("WriteMultipleRegisters,tcpClient.SendData failed, error:%s", err.Error())
@@ -987,7 +985,7 @@ func (s *mbSerialRTUMaster) MaskWriteRegister(address uint16, andBytes []byte, o
 	return
 }
 
-func (s *mbSerialRTUMaster) ReadWriteMultipleRegisters(readAddr, readCount uint16, writeAddr, writeCount uint16, writeData []byte) (retData []byte, exCode byte, err error) {
+func (s *mbSerialASCIIMaster) ReadWriteMultipleRegisters(readAddr, readCount uint16, writeAddr, writeCount uint16, writeData []byte) (retData []byte, exCode byte, err error) {
 	protocol := model.NewReadWriteMultipleRegistersReq(readAddr, readCount, writeAddr, writeCount, writeData)
 	header := model.NewSerialHeader(s.address)
 
@@ -1005,7 +1003,7 @@ func (s *mbSerialRTUMaster) ReadWriteMultipleRegisters(readAddr, readCount uint1
 		log.Errorf("ReadWriteMultipleRegisters,signalGard.PutSignal failed, error:%s", err.Error())
 		return
 	}
-	byteVal := s.encodeToRTUStream(buffVal.Bytes())
+	byteVal := s.encodeToASCIIStream(buffVal.Bytes())
 	err = s.tcpClient.SendData(byteVal)
 	if err != nil {
 		log.Errorf("ReadWriteMultipleRegisters,tcpClient.SendData failed, error:%s", err.Error())
@@ -1036,7 +1034,7 @@ func (s *mbSerialRTUMaster) ReadWriteMultipleRegisters(readAddr, readCount uint1
 	return
 }
 
-func (s *mbSerialRTUMaster) ReadFIFOQueue(address uint16) (retDataCount uint16, retDataVal []byte, exCode byte, err error) {
+func (s *mbSerialASCIIMaster) ReadFIFOQueue(address uint16) (retDataCount uint16, retDataVal []byte, exCode byte, err error) {
 	protocol := model.NewReadFIFOQueueReq(address)
 	header := model.NewSerialHeader(s.address)
 
@@ -1054,7 +1052,7 @@ func (s *mbSerialRTUMaster) ReadFIFOQueue(address uint16) (retDataCount uint16, 
 		log.Errorf("ReadFIFOQueue,signalGard.PutSignal failed, error:%s", err.Error())
 		return
 	}
-	byteVal := s.encodeToRTUStream(buffVal.Bytes())
+	byteVal := s.encodeToASCIIStream(buffVal.Bytes())
 	err = s.tcpClient.SendData(byteVal)
 	if err != nil {
 		log.Errorf("ReadFIFOQueue,tcpClient.SendData failed, error:%s", err.Error())
