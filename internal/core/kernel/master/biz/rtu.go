@@ -74,7 +74,7 @@ func (s *mbSerialRTUMaster) crcCheck(byteVal []byte) []byte {
 		}
 	}
 
-	return []byte{byte(crc >> 8), byte(crc)}
+	return []byte{byte(crc), byte(crc >> 8)}
 }
 
 func (s *mbSerialRTUMaster) encodeToRTUStream(byteVal []byte) []byte {
