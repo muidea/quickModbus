@@ -32,7 +32,7 @@ func New(
 	}
 }
 
-func (s *Master) ConnectSlave(slaveAddr string, devID, devType byte) (ret string, err *cd.Result) {
+func (s *Master) ConnectSlave(slaveAddr string, devID, devType, endianType byte) (ret string, err *cd.Result) {
 	slaveID := fmt.Sprintf("mb%03d", devID)
 	val := s.slaveInfoCache.Fetch(slaveID)
 	if val != nil {
@@ -44,11 +44,11 @@ func (s *Master) ConnectSlave(slaveAddr string, devID, devType byte) (ret string
 
 	var masterPtr MBMaster
 	if devType == common.ModbusTcp {
-		masterPtr = NewTCPMaster(devID)
+		masterPtr = NewTCPMaster(devID, endianType)
 	} else if devType == common.ModbusRTUOverTcp {
-		masterPtr = NewRTUMaster(devID)
+		masterPtr = NewRTUMaster(devID, endianType)
 	} else if devType == common.ModbusASCIIOverTcp {
-		masterPtr = NewASCIIMaster(devID)
+		masterPtr = NewASCIIMaster(devID, endianType)
 	} else {
 		errMsg := fmt.Sprintf("illegal slave device type, id:%v, type:%v", devID, devType)
 		log.Errorf("connectSlave failed, error:%s", errMsg)
@@ -169,18 +169,18 @@ func (s *Master) ReadDiscreteInputs(slaveID string, address, count uint16) (ret 
 	return
 }
 
-func (s *Master) decodeReadVal(readVal []byte, valueType, endianType, count uint16) (interface{}, error) {
+func (s *Master) decodeReadVal(readVal []byte, valueType, count uint16, endianType byte) (interface{}, error) {
 	var itemVal interface{}
 	var itemErr error
 	switch valueType {
 	case common.Int16Value:
-		iVal, iErr := common.BytesToInt16Array(readVal)
+		iVal, iErr := common.BytesToInt16Array(readVal, endianType)
 		if iErr == nil {
 			itemVal = iVal[:count]
 		}
 		itemErr = iErr
 	case common.UInt16Value:
-		uVal, uErr := common.BytesToUint16Array(readVal)
+		uVal, uErr := common.BytesToUint16Array(readVal, endianType)
 		if uErr == nil {
 			itemVal = uVal[:count]
 		}
@@ -227,7 +227,7 @@ func (s *Master) decodeReadVal(readVal []byte, valueType, endianType, count uint
 	return itemVal, itemErr
 }
 
-func (s *Master) ReadHoldingRegisters(slaveID string, address, count, valueType, endianType uint16) (ret interface{}, exCode byte, err *cd.Result) {
+func (s *Master) ReadHoldingRegisters(slaveID string, address, count, valueType uint16, endianType byte) (ret interface{}, exCode byte, err *cd.Result) {
 	vVal := s.slaveInfoCache.Fetch(slaveID)
 	if vVal == nil {
 		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
@@ -273,7 +273,11 @@ func (s *Master) ReadHoldingRegisters(slaveID string, address, count, valueType,
 		return
 	}
 
-	itemVal, itemErr := s.decodeReadVal(readVal, valueType, endianType, count)
+	if endianType == common.DefaultEndian {
+		endianType = mbMasterPtr.EndianType()
+	}
+
+	itemVal, itemErr := s.decodeReadVal(readVal, valueType, count, endianType)
 	if itemErr != nil {
 		log.Errorf("ReadHoldingRegisters failed, decode failed error:%s", itemErr.Error())
 		err = cd.NewError(cd.UnExpected, itemErr.Error())
@@ -284,7 +288,7 @@ func (s *Master) ReadHoldingRegisters(slaveID string, address, count, valueType,
 	return
 }
 
-func (s *Master) ReadInputRegisters(slaveID string, address, count, valueType, endianType uint16) (ret interface{}, exCode byte, err *cd.Result) {
+func (s *Master) ReadInputRegisters(slaveID string, address, count, valueType uint16, endianType byte) (ret interface{}, exCode byte, err *cd.Result) {
 	vVal := s.slaveInfoCache.Fetch(slaveID)
 	if vVal == nil {
 		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
@@ -330,7 +334,11 @@ func (s *Master) ReadInputRegisters(slaveID string, address, count, valueType, e
 		return
 	}
 
-	itemVal, itemErr := s.decodeReadVal(readVal, valueType, endianType, count)
+	if endianType == common.DefaultEndian {
+		endianType = mbMasterPtr.EndianType()
+	}
+
+	itemVal, itemErr := s.decodeReadVal(readVal, valueType, count, endianType)
 	if itemErr != nil {
 		log.Errorf("ReadInputRegisters failed, decode failed error:%s", itemErr.Error())
 		err = cd.NewError(cd.UnExpected, itemErr.Error())
@@ -442,7 +450,7 @@ func (s *Master) WriteMultipleCoils(slaveID string, address uint16, value []bool
 	return
 }
 
-func (s *Master) WriteSingleRegister(slaveID string, address uint16, value uint16) (exCode byte, err *cd.Result) {
+func (s *Master) WriteSingleRegister(slaveID string, address, value uint16, endianType byte) (exCode byte, err *cd.Result) {
 	vVal := s.slaveInfoCache.Fetch(slaveID)
 	if vVal == nil {
 		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
@@ -463,7 +471,11 @@ func (s *Master) WriteSingleRegister(slaveID string, address uint16, value uint1
 
 	var byteVal []byte
 	var byteErr error
-	byteVal, byteErr = common.AppendUint16(byteVal, value)
+
+	if endianType == common.DefaultEndian {
+		endianType = mbMasterPtr.EndianType()
+	}
+	byteVal, byteErr = common.AppendUint16(byteVal, value, endianType)
 	if byteErr != nil {
 		log.Errorf("WriteSingleRegister failed, AppendUint16 error:%s", byteErr.Error())
 		err = cd.NewError(cd.UnExpected, byteErr.Error())
@@ -492,7 +504,7 @@ func (s *Master) WriteSingleRegister(slaveID string, address uint16, value uint1
 	return
 }
 
-func (s *Master) WriteMultipleRegisters(slaveID string, address uint16, values []float64, valueTyp, endianType uint16) (exCode byte, err *cd.Result) {
+func (s *Master) WriteMultipleRegisters(slaveID string, address uint16, values []float64, valueTyp uint16, endianType byte) (exCode byte, err *cd.Result) {
 	vVal := s.slaveInfoCache.Fetch(slaveID)
 	if vVal == nil {
 		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
@@ -510,6 +522,9 @@ func (s *Master) WriteMultipleRegisters(slaveID string, address uint16, values [
 			return
 		}
 	}
+	if endianType == common.DefaultEndian {
+		endianType = mbMasterPtr.EndianType()
+	}
 
 	var byteVal []byte
 	var byteErr error
@@ -524,10 +539,10 @@ func (s *Master) WriteMultipleRegisters(slaveID string, address uint16, values [
 
 		switch valueTyp {
 		case common.Int16Value:
-			byteVal, byteErr = common.AppendInt16(byteVal, cVal.(int16))
+			byteVal, byteErr = common.AppendInt16(byteVal, cVal.(int16), endianType)
 			valCount++
 		case common.UInt16Value:
-			byteVal, byteErr = common.AppendUint16(byteVal, cVal.(uint16))
+			byteVal, byteErr = common.AppendUint16(byteVal, cVal.(uint16), endianType)
 			valCount++
 		case common.Int32Value:
 			byteVal, byteErr = common.AppendInt32(byteVal, cVal.(int32), endianType)
@@ -599,7 +614,7 @@ func (s *Master) MaskWriteRegister(slaveID string, address uint16, andMask uint1
 
 	var andByteVal []byte
 	var andErr error
-	andByteVal, andErr = common.AppendUint16(andByteVal, andMask)
+	andByteVal, andErr = common.AppendUint16(andByteVal, andMask, common.DefaultEndian)
 	if andErr != nil {
 		log.Errorf("MaskWriteRegister failed, andMask AppendUint16 error:%s", andErr)
 		err = cd.NewError(cd.UnExpected, andErr.Error())
@@ -608,7 +623,7 @@ func (s *Master) MaskWriteRegister(slaveID string, address uint16, andMask uint1
 
 	var orByteVal []byte
 	var orErr error
-	orByteVal, orErr = common.AppendUint16(orByteVal, orMask)
+	orByteVal, orErr = common.AppendUint16(orByteVal, orMask, common.DefaultEndian)
 	if orErr != nil {
 		log.Errorf("MaskWriteRegister failed, orMask AppendBoolArray error:%s", orErr)
 		err = cd.NewError(cd.UnExpected, orErr.Error())
@@ -638,7 +653,7 @@ func (s *Master) MaskWriteRegister(slaveID string, address uint16, andMask uint1
 	return
 }
 
-func (s *Master) ReadWriteMultipleRegisters(slaveID string, readAddr, readCount, readValueType uint16, writeAddr uint16, writeValues []float64, writeValueType, endianType uint16) (ret interface{}, exCode byte, err *cd.Result) {
+func (s *Master) ReadWriteMultipleRegisters(slaveID string, readAddr, readCount, readValueType uint16, writeAddr uint16, writeValues []float64, writeValueType uint16, endianType byte) (ret interface{}, exCode byte, err *cd.Result) {
 	vVal := s.slaveInfoCache.Fetch(slaveID)
 	if vVal == nil {
 		errMsg := fmt.Sprintf("no exist slave device %s", slaveID)
@@ -655,6 +670,9 @@ func (s *Master) ReadWriteMultipleRegisters(slaveID string, readAddr, readCount,
 			err = cd.NewError(cd.UnExpected, connErr.Error())
 			return
 		}
+	}
+	if endianType == common.DefaultEndian {
+		endianType = mbMasterPtr.EndianType()
 	}
 
 	readValCount, readValErr := s.prepareReadData(readCount, readValueType)
@@ -690,7 +708,7 @@ func (s *Master) ReadWriteMultipleRegisters(slaveID string, readAddr, readCount,
 		return
 	}
 
-	itemVal, itemErr := s.decodeReadVal(retVal, readValueType, endianType, readCount)
+	itemVal, itemErr := s.decodeReadVal(retVal, readValueType, readCount, endianType)
 	if itemErr != nil {
 		log.Errorf("ReadWriteMultipleRegisters failed, decode failed error:%s", itemErr.Error())
 		err = cd.NewError(cd.UnExpected, itemErr.Error())
@@ -722,7 +740,7 @@ func (s *Master) prepareReadData(readNum, valueType uint16) (uint16, error) {
 	return readCount, nil
 }
 
-func (s *Master) prepareWriteData(values []float64, valueType uint16, endianType uint16) ([]byte, uint16, error) {
+func (s *Master) prepareWriteData(values []float64, valueType uint16, endianType byte) ([]byte, uint16, error) {
 	var writeByteVal []byte
 	var writeCount = uint16(0)
 	var writeByteErr error
@@ -735,10 +753,10 @@ func (s *Master) prepareWriteData(values []float64, valueType uint16, endianType
 
 		switch valueType {
 		case common.Int16Value:
-			writeByteVal, writeByteErr = common.AppendInt16(writeByteVal, cVal.(int16))
+			writeByteVal, writeByteErr = common.AppendInt16(writeByteVal, cVal.(int16), endianType)
 			writeCount++
 		case common.UInt16Value:
-			writeByteVal, writeByteErr = common.AppendUint16(writeByteVal, cVal.(uint16))
+			writeByteVal, writeByteErr = common.AppendUint16(writeByteVal, cVal.(uint16), endianType)
 			writeCount++
 		case common.Int32Value:
 			writeByteVal, writeByteErr = common.AppendInt32(writeByteVal, cVal.(int32), endianType)

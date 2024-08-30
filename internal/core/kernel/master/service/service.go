@@ -77,7 +77,7 @@ func (s *Master) ConnectSlave(ctx context.Context, res http.ResponseWriter, req 
 			break
 		}
 
-		slaveID, slaveErr := s.bizPtr.ConnectSlave(param.SlaveAddr, param.DeviceID, param.DeviceType)
+		slaveID, slaveErr := s.bizPtr.ConnectSlave(param.SlaveAddr, param.DeviceID, param.DeviceType, param.EndianType)
 		if slaveErr != nil {
 			log.Errorf("connect slave failed, slaveAddr:%s, deviceID:%v, deviceType:%v, error:%s", param.SlaveAddr, param.DeviceID, param.DeviceType, slaveErr.Error())
 			result.Result = *slaveErr
@@ -298,7 +298,7 @@ func (s *Master) WriteSingleRegister(ctx context.Context, res http.ResponseWrite
 			break
 		}
 		slaveID := ctx.Value(slaveIDContextKey).(string)
-		writeExCode, writeErr := s.bizPtr.WriteSingleRegister(slaveID, param.Address, param.Value)
+		writeExCode, writeErr := s.bizPtr.WriteSingleRegister(slaveID, param.Address, param.Value, param.EndianType)
 		result.ExceptionCode = writeExCode
 		if writeErr != nil {
 			log.Errorf("WriteSingleRegister failed, slaveID:%s, address:%d, exCode:%v, error:%s", slaveID, param.Address, writeExCode, writeErr.Error())

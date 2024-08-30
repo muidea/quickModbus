@@ -14,9 +14,10 @@ import (
 	"github.com/muidea/quickModbus/pkg/model"
 )
 
-func NewRTUMaster(address byte) MBMaster {
+func NewRTUMaster(address, endianType byte) MBMaster {
 	return &mbSerialRTUMaster{
-		address: address,
+		address:    address,
+		endianType: endianType,
 	}
 }
 
@@ -24,8 +25,9 @@ type mbSerialRTUMaster struct {
 	serverAddr string
 	signalGard signal.Gard
 
-	tcpClient tcp.Client
-	address   byte
+	tcpClient  tcp.Client
+	address    byte
+	endianType byte
 }
 
 func (s *mbSerialRTUMaster) reset() {
@@ -58,7 +60,7 @@ func (s *mbSerialRTUMaster) connect(serverAddr string) (ret tcp.Client, err erro
 	return
 }
 
-func (s *mbSerialRTUMaster) crcCheck(byteVal []byte) uint16 {
+func (s *mbSerialRTUMaster) crcCheck(byteVal []byte) []byte {
 	var crc uint16 = 0xFFFF
 
 	for _, b := range byteVal {
@@ -72,23 +74,20 @@ func (s *mbSerialRTUMaster) crcCheck(byteVal []byte) uint16 {
 		}
 	}
 
-	return (crc >> 8) | (crc << 8)
+	return []byte{byte(crc >> 8), byte(crc)}
 }
 
 func (s *mbSerialRTUMaster) encodeToRTUStream(byteVal []byte) []byte {
 	crcVal := s.crcCheck(byteVal)
-	byteVal, _ = common.AppendUint16(byteVal, crcVal)
+	byteVal = append(byteVal, crcVal...)
 	return byteVal
 }
 
 func (s *mbSerialRTUMaster) decodeFromRTUStream(dataVal []byte) ([]byte, error) {
 	rawData := dataVal[0 : len(dataVal)-2]
 	crcVal := s.crcCheck(rawData)
-	dataCRC, dataErr := common.BytesToUint16(dataVal[len(dataVal)-2:])
-	if dataErr != nil {
-		return nil, dataErr
-	}
-	if crcVal != dataCRC {
+	dataCRC := dataVal[len(dataVal)-2:]
+	if bytes.Compare(crcVal, dataCRC) != 0 {
 		err := fmt.Errorf("check crc failed")
 		return nil, err
 	}
@@ -131,6 +130,10 @@ func (s *mbSerialRTUMaster) ReConnect() (err error) {
 
 	s.tcpClient = connClient
 	return
+}
+
+func (s *mbSerialRTUMaster) EndianType() byte {
+	return s.endianType
 }
 
 func (s *mbSerialRTUMaster) OnConnect(ep tcp.Endpoint) {

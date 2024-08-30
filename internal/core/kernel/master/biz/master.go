@@ -13,6 +13,7 @@ type MBMaster interface {
 	Stop()
 	IsConnect() bool
 	ReConnect() (err error)
+	EndianType() byte
 	OnConnect(ep tcp.Endpoint)
 	OnDisConnect(ep tcp.Endpoint)
 	OnRecvData(ep tcp.Endpoint, data []byte)

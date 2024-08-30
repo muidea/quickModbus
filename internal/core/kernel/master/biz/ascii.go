@@ -14,9 +14,10 @@ import (
 	"github.com/muidea/quickModbus/pkg/model"
 )
 
-func NewASCIIMaster(address byte) MBMaster {
+func NewASCIIMaster(address, endianType byte) MBMaster {
 	return &mbSerialASCIIMaster{
-		address: address,
+		address:    address,
+		endianType: endianType,
 	}
 }
 
@@ -24,8 +25,9 @@ type mbSerialASCIIMaster struct {
 	serverAddr string
 	signalGard signal.Gard
 
-	tcpClient tcp.Client
-	address   byte
+	tcpClient  tcp.Client
+	address    byte
+	endianType byte
 }
 
 func (s *mbSerialASCIIMaster) reset() {
@@ -129,6 +131,10 @@ func (s *mbSerialASCIIMaster) ReConnect() (err error) {
 
 	s.tcpClient = connClient
 	return
+}
+
+func (s *mbSerialASCIIMaster) EndianType() byte {
+	return s.endianType
 }
 
 func (s *mbSerialASCIIMaster) OnConnect(ep tcp.Endpoint) {

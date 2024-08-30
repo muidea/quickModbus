@@ -14,9 +14,10 @@ import (
 	"github.com/muidea/quickModbus/pkg/model"
 )
 
-func NewTCPMaster(deviceID byte) MBMaster {
+func NewTCPMaster(deviceID, endianType byte) MBMaster {
 	return &mbTCPMaster{
-		deviceID: deviceID,
+		deviceID:   deviceID,
+		endianType: endianType,
 	}
 }
 
@@ -24,9 +25,10 @@ type mbTCPMaster struct {
 	serverAddr string
 	signalGard signal.Gard
 
-	tcpClient tcp.Client
-	serialNo  int
-	deviceID  byte
+	tcpClient  tcp.Client
+	serialNo   int
+	deviceID   byte
+	endianType byte
 }
 
 func (s *mbTCPMaster) transaction() uint16 {
@@ -100,6 +102,10 @@ func (s *mbTCPMaster) ReConnect() (err error) {
 
 	s.tcpClient = connClient
 	return
+}
+
+func (s *mbTCPMaster) EndianType() byte {
+	return s.endianType
 }
 
 func (s *mbTCPMaster) OnConnect(ep tcp.Endpoint) {

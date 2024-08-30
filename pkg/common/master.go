@@ -18,16 +18,22 @@ const (
 )
 
 /*
-ABCD 0 Big-endian 按照顺序排序
-BADC 1 Big-endian byte swap 按照单字反转
-CDAB 2 Little-endian byte swap 按照双字反转
-DCBA 3 Little-endian 按照倒序排序
+Default 0 不调整字节序，以PLC返回为准
+ABCD 1 Big-endian 按照顺序排序
+BADC 2 Big-endian byte swap 按照单字反转
+CDAB 3 Little-endian byte swap 按照双字反转
+DCBA 4 Little-endian 按照倒序排序
+AB 两字节有效，顺序排列
+BA 两字节有效，倒序排列
 */
 const (
-	ABCDEndian = 0
-	BADCEndian = 1
-	CDABEndian = 2
-	DCBAEndian = 3
+	DefaultEndian = 0
+	ABCDEndian    = 1
+	BADCEndian    = 2
+	CDABEndian    = 3
+	DCBAEndian    = 4
+	ABEndian      = 5
+	BAEndian      = 6
 )
 
 const (
@@ -63,6 +69,7 @@ type ConnectSlaveRequest struct {
 	SlaveAddr  string `json:"slaveAddr"`
 	DeviceID   byte   `json:"deviceID"`
 	DeviceType byte   `json:"deviceType"`
+	EndianType byte   `json:"endianType"`
 }
 
 type ConnectSlaveResponse struct {
@@ -96,7 +103,7 @@ type ReadHoldingRegistersRequest struct {
 	Address    uint16 `json:"address"`
 	Count      uint16 `json:"count"`
 	ValueType  uint16 `json:"valueType"`
-	EndianType uint16 `json:"endianType"`
+	EndianType byte   `json:"endianType"`
 }
 
 type ReadHoldingRegistersResponse struct {
@@ -109,7 +116,7 @@ type ReadReadInputRegistersRequest struct {
 	Address    uint16 `json:"address"`
 	Count      uint16 `json:"count"`
 	ValueType  uint16 `json:"valueType"`
-	EndianType uint16 `json:"endianType"`
+	EndianType byte   `json:"endianType"`
 }
 
 type ReadReadInputRegistersResponse struct {
@@ -129,8 +136,9 @@ type WriteSingleCoilResponse struct {
 }
 
 type WriteSingleRegisterRequest struct {
-	Address uint16 `json:"address"`
-	Value   uint16 `json:"value"`
+	Address    uint16 `json:"address"`
+	Value      uint16 `json:"value"`
+	EndianType byte   `json:"endianType"`
 }
 
 type WriteSingleRegisterResponse struct {
@@ -194,7 +202,7 @@ type WriteMultipleRegistersRequest struct {
 	Address    uint16    `json:"address"`
 	Values     []float64 `json:"values"`
 	ValueType  uint16    `json:"valueType"`
-	EndianType uint16    `json:"endianType"`
+	EndianType byte      `json:"endianType"`
 }
 
 type WriteMultipleRegistersResponse struct {
@@ -260,7 +268,7 @@ type ReadWriteMultipleRegistersRequest struct {
 	WriteAddress   uint16    `json:"writeAddress"`
 	WriteValues    []float64 `json:"writeValues"`
 	WriteValueType uint16    `json:"writeValueType"`
-	EndianType     uint16    `json:"endianType"`
+	EndianType     byte      `json:"endianType"`
 }
 
 type ReadWriteMultipleRegistersResponse struct {
