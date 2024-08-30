@@ -565,7 +565,7 @@ func (s *Master) WriteMultipleRegisters(slaveID string, address uint16, values [
 		}
 		if byteErr != nil {
 			log.Errorf("writeMultipleRegisters failed, AppendValueToArray error:%s", byteErr.Error())
-			err = cd.NewError(cd.UnExpected, cErr.Error())
+			err = cd.NewError(cd.UnExpected, byteErr.Error())
 			return
 		}
 	}

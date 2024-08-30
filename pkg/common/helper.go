@@ -47,7 +47,7 @@ func swapArrayFor64Bits[T any](valArray []T, endianType byte) (ret []T, err erro
 	copy(swappedVal, valArray)
 
 	switch endianType {
-	case ABCDEndian, BADCEndian:
+	case DefaultEndian, ABCDEndian, BADCEndian:
 	// No change needed for abcd,badc
 	case CDABEndian, DCBAEndian:
 		for i := 0; i+7 < len(valArray); i += 8 {
@@ -78,7 +78,7 @@ func swapArray[T any](valArray []T, endianType byte) (ret []T, err error) {
 	copy(swappedVal, valArray)
 
 	switch endianType {
-	case ABCDEndian, ABEndian:
+	case DefaultEndian, ABCDEndian, ABEndian:
 		// No change needed for abcd
 	case BADCEndian:
 		for i := 0; i+3 < len(valArray); i += 4 {
