@@ -15,7 +15,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2.3.5
 
-      - name: Get brach vars
+      - name: Get branch vars
         uses: bvkimball/branch-vars@1.0.1
       - run: |
           VERSION=$(echo ${CURRENT_BRANCH}|awk -F'/' '{print $2}')
